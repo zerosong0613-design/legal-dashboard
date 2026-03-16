@@ -473,8 +473,11 @@ tbody td{padding:13px 14px;font-size:13.5px;}
   /* M2: 챗봇 플로팅 버튼 — 모바일 최소화 */
   .global-chat-btn{width:40px;height:40px;font-size:16px;bottom:16px;right:16px;}
   .global-chat-panel{width:calc(100vw - 32px);right:16px;bottom:64px;}
-  /* 모바일: 사이드바 완전 숨김, 하단 탭 표시 */
-  .sidebar{display:none !important;}
+  /* 모바일: 사이드바 오버레이 슬라이드 + 하단 탭 표시 */
+  .sidebar{display:flex !important;width:0;overflow:hidden;position:fixed;top:0;left:0;height:100%;z-index:300;background:#ffffff;box-shadow:none;transition:width .25s ease,box-shadow .25s ease;}
+  .sidebar.open{width:280px;box-shadow:4px 0 20px rgba(0,0,0,0.15);}
+  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:299;}
+  .sidebar-overlay.open{display:block;}
   .mobile-bottom-tab{display:flex !important;}
   /* 콘텐츠가 탭 바에 가려지지 않도록 하단 패딩 */
   .content{padding-bottom:calc(56px + env(safe-area-inset-bottom,0) + 8px) !important;}
@@ -836,6 +839,7 @@ tbody td{padding:13px 14px;font-size:13.5px;}
 <body>
 <div class="app" id="app">
 <!-- 사이드바 -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebarMobile()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo" onclick="toggleSidebar()" title="사이드바 접기/펼치기">
     <span class="sidebar-logo-icon">⚖️</span>
@@ -1321,8 +1325,12 @@ tbody td{padding:13px 14px;font-size:13.5px;}
     <span class="mobile-tab-label">비용</span>
   </button>
   <button class="mobile-tab-item" data-screen="archive" onclick="showScreen('archive',null)">
-    <span class="mobile-tab-icon">⋯</span>
-    <span class="mobile-tab-label">더보기</span>
+    <span class="mobile-tab-icon">📦</span>
+    <span class="mobile-tab-label">아카이브</span>
+  </button>
+  <button class="mobile-tab-item" onclick="toggleSidebar()">
+    <span class="mobile-tab-icon">☰</span>
+    <span class="mobile-tab-label">설정</span>
   </button>
 </nav>
 <!-- U4: 알림 센터 패널 -->
@@ -1665,10 +1673,18 @@ function toggleSidebar(){
   const sb=document.getElementById('sidebar');
   if(!sb)return;
   if(window.innerWidth<=768){
+    const overlay=document.getElementById('sidebarOverlay');
     sb.classList.toggle('open');
+    if(overlay) overlay.classList.toggle('open', sb.classList.contains('open'));
   } else {
     toggleSidebarMini();
   }
+}
+function closeSidebarMobile(){
+  const sb=document.getElementById('sidebar');
+  const overlay=document.getElementById('sidebarOverlay');
+  if(sb) sb.classList.remove('open');
+  if(overlay) overlay.classList.remove('open');
 }
 
 function toggleSidebarMini(){
