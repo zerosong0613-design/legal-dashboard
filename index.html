@@ -922,6 +922,22 @@ tbody td{padding:13px 14px;font-size:13.5px;}
         </div>
         <div style="font-size:9px;color:#dc2626;margin-top:5px;line-height:1.4;">⚠ API Key는 브라우저에 저장됩니다. 공용 PC에서는 사용 후 반드시 키를 삭제하세요.</div>
       </div>
+      <!-- P1-3: AI (Anthropic) API Key 설정 -->
+      <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
+        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:5px;font-weight:500;">AI 기능 (Anthropic API)</div>
+        <div style="display:flex;gap:4px;margin-bottom:4px;">
+          <input id="aiKeyInput" type="password" placeholder="sk-ant-api03-..." style="flex:1;min-width:0;padding:5px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:11px;outline:none;box-sizing:border-box;">
+        </div>
+        <div style="display:flex;gap:4px;margin-bottom:4px;">
+          <button class="btn btn-primary btn-sm" onclick="saveAIKey()" style="font-size:11px;padding:4px 10px;height:26px;flex:1;justify-content:center;">AI 연결</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAIKey()" style="font-size:11px;padding:4px 6px;height:26px;">삭제</button>
+        </div>
+        <div id="aiKeyStatus" style="font-size:10px;color:var(--text-muted);"></div>
+      </div>
+      <!-- P1-4: 온라인 상태 -->
+      <div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border);">
+        <div id="onlineStatus" style="font-size:10px;"></div>
+      </div>
     </div>
   </div>
   <!-- 현재 사용자 표시 -->
@@ -1009,6 +1025,8 @@ tbody td{padding:13px 14px;font-size:13.5px;}
         <select id="filterCat" onchange="renderTable()"><option value="">전체 분류</option><option value="LIT">소송·중재</option><option value="ADV">일반 자문</option><option value="INT">내부 자문</option><option value="REG">규제·행정</option><option value="ETC">기타</option></select>
         <select id="filterStatus" onchange="renderTable()"><option value="">전체 상태</option><option value="new">접수</option><option value="review">검토중</option><option value="process">처리중</option><option value="hold">보류</option></select>
         <select id="filterLawyer" onchange="renderTable()"><option value="">전체 담당자</option></select>
+        <input type="month" id="filterDateFrom" onchange="renderTable()" title="접수일 시작" style="padding:5px 8px;border:1px solid var(--border-dark);border-radius:var(--radius-sm);font-size:12px;outline:none;">
+        <input type="month" id="filterDateTo" onchange="renderTable()" title="접수일 종료" style="padding:5px 8px;border:1px solid var(--border-dark);border-radius:var(--radius-sm);font-size:12px;outline:none;">
       </div>
       <!-- T3: 검색 결과 수 표시 -->
       <div id="searchResultCount" style="display:none;font-size:12px;color:var(--text-muted);padding:4px 2px 8px;"></div>
@@ -1545,6 +1563,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   // 2) JSONBin 클라우드 동기화 (충돌 감지)
   JSONBIN.init();
+  AI_CONFIG.init();
+  updateOnlineStatus();
   if(JSONBIN.ENABLED){
     JSONBIN.load().then(record=>{
       if(!record) return;
@@ -1582,11 +1602,93 @@ function save(){
   localStorage.setItem(LS,JSON.stringify(cases));
   setLocalMeta();
   if(JSONBIN.ENABLED){
-    clearTimeout(save._timer);
-    save._timer=setTimeout(()=>JSONBIN.push(cases),1500);
+    if(navigator.onLine){
+      clearTimeout(save._timer);
+      save._timer=setTimeout(()=>JSONBIN.push(cases),1500);
+    } else {
+      addToSyncQueue({type:'save'});
+    }
   }
 }
 save._timer=null;
+
+/* ===== P1-3: AI API 공통 호출 ===== */
+const AI_CONFIG = {
+  API_KEY: '',
+  MODEL: 'claude-sonnet-4-5',
+  init(){
+    const saved=localStorage.getItem('anthropic_api_key');
+    if(saved) this.API_KEY=deobfuscateKey(saved);
+  },
+  saveKey(key){
+    this.API_KEY=key;
+    localStorage.setItem('anthropic_api_key',obfuscateKey(key));
+  },
+  clearKey(){
+    this.API_KEY='';
+    localStorage.removeItem('anthropic_api_key');
+  }
+};
+
+async function callAI({system,messages,max_tokens=600,model}){
+  if(!AI_CONFIG.API_KEY){
+    throw new Error('AI API Key가 설정되지 않았습니다. 사이드바 설정에서 입력하세요.');
+  }
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':AI_CONFIG.API_KEY,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:model||AI_CONFIG.MODEL,
+      max_tokens,
+      ...(system?{system}:{}),
+      messages
+    })
+  });
+  const data=await res.json();
+  if(data.error) throw new Error(data.error.message);
+  return data.content?.[0]?.text||'';
+}
+
+/* ===== P1-4: 오프라인→온라인 동기화 큐 ===== */
+const SYNC_QUEUE_KEY='legal_sync_queue';
+function getSyncQueue(){try{return JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY)||'[]');}catch{return[];}}
+function addToSyncQueue(action){
+  const q=getSyncQueue();
+  q.push({...action,timestamp:new Date().toISOString()});
+  localStorage.setItem(SYNC_QUEUE_KEY,JSON.stringify(q));
+  updateOnlineStatus();
+}
+async function flushSyncQueue(){
+  if(!JSONBIN.ENABLED||!navigator.onLine)return;
+  const q=getSyncQueue();
+  if(!q.length)return;
+  try{
+    await JSONBIN.push(cases);
+    localStorage.setItem(SYNC_QUEUE_KEY,'[]');
+    showToast(`오프라인 변경 ${q.length}건 동기화 완료`);
+  }catch(e){console.error('[SyncQueue] flush 실패:',e);}
+  updateOnlineStatus();
+}
+function updateOnlineStatus(){
+  const el=document.getElementById('onlineStatus');if(!el)return;
+  const online=navigator.onLine;
+  const q=getSyncQueue();
+  if(online&&!q.length){
+    el.innerHTML='<span style="color:var(--s-done)">● 온라인</span>';
+  } else if(online&&q.length){
+    el.innerHTML=`<span style="color:var(--s-review)">● 동기화 대기 (${q.length}건)</span>`;
+  } else {
+    el.innerHTML=`<span style="color:var(--s-new)">● 오프라인</span>${q.length?` · ${q.length}건 대기`:''}`;
+  }
+}
+window.addEventListener('online',()=>{showToast('네트워크 복구 — 동기화 시작');flushSyncQueue();});
+window.addEventListener('offline',()=>{showToast('오프라인 모드 — 변경사항은 로컬에 저장됩니다');updateOnlineStatus();});
+
 function dday(ds){
   // B1 fix: 'YYYY-MM-DD' 를 UTC가 아닌 로컬 타임존으로 파싱 (한국 UTC+9 환경 오차 방지)
   const t=new Date();t.setHours(0,0,0,0);
@@ -1941,6 +2043,8 @@ function renderTable(){
   const fC=document.getElementById('filterCat')?.value||'';
   const fS=document.getElementById('filterStatus')?.value||'';
   const fL=document.getElementById('filterLawyer')?.value||'';
+  const fDF=document.getElementById('filterDateFrom')?.value||'';
+  const fDT=document.getElementById('filterDateTo')?.value||'';
   // N1: 검색 범위 확장 (요약·메모·태그·관계자 포함)
   const matchCase=(c)=>{
     if(!kw)return{match:true,field:''};
@@ -1959,6 +2063,8 @@ function renderTable(){
     if(fC&&c.category!==fC)return false;
     if(fS&&c.status!==fS)return false;
     if(fL&&c.lawyer!==fL)return false;
+    if(fDF&&(c.date||'')<fDF)return false;
+    if(fDT&&(c.date||'').slice(0,7)>fDT)return false;
     return matchCase(c).match;
   }).sort((a,b)=>b.createdAt-a.createdAt);
   const tbody=document.getElementById('caseTableBody');
@@ -2032,6 +2138,8 @@ function clearFilters(){
   const fc=document.getElementById('filterCat');if(fc)fc.value='';
   const fs=document.getElementById('filterStatus');if(fs)fs.value='';
   const fl=document.getElementById('filterLawyer');if(fl)fl.value='';
+  const fdf=document.getElementById('filterDateFrom');if(fdf)fdf.value='';
+  const fdt=document.getElementById('filterDateTo');if(fdt)fdt.value='';
   renderTable();
 }
 function updateFilter(){
@@ -2608,19 +2716,11 @@ async function aiSummarizeFile(event){
     }
 
     // Claude API 호출
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-5',
-        max_tokens:600,
-        system:'당신은 법무팀 사건 요약 전문가입니다. 제공된 문서를 읽고 법무적 쟁점, 의뢰 내용, 주요 사실관계를 300자 내외로 요약해주세요. 이모지 없이 한국어로.',
-        messages:[{role:'user',content:msgContent}]
-      })
+    const summary=await callAI({
+      system:'당신은 법무팀 사건 요약 전문가입니다. 제공된 문서를 읽고 법무적 쟁점, 의뢰 내용, 주요 사실관계를 300자 내외로 요약해주세요. 이모지 없이 한국어로.',
+      messages:[{role:'user',content:msgContent}],
+      max_tokens:600
     });
-    const data=await res.json();
-    if(data.error){throw new Error(data.error.message);}
-    const summary=data.content?.[0]?.text||'';
     // 결과를 textarea에 자동 입력
     const ta=document.getElementById('edit-summary');
     if(ta)ta.value=summary;
@@ -3029,24 +3129,11 @@ async function agentSend(){
       {role:'user',content:userContent}
     ];
 
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-5',
-        max_tokens:2000,
-        system:`당신은 법무팀 전문 문서 분석 AI입니다. 
-제공된 법률 문서들을 분석하고 질문에 정확하게 답변해주세요.
-답변 시 조항 번호와 원문 근거를 함께 제시하고, 어느 파일의 내용인지 명시해주세요.
-여러 파일이 제공된 경우 관련 파일을 모두 참고하여 종합적으로 답변하세요.
-이모지 없이 한국어로 답변하세요.`,
-        messages
-      })
-    });
-
-    const data=await res.json();
-    if(data.error)throw new Error(data.error.message);
-    const answer=data.content?.[0]?.text||'응답을 받지 못했습니다.';
+    const answer=await callAI({
+      system:'당신은 법무팀 전문 문서 분석 AI입니다. 제공된 법률 문서들을 분석하고 질문에 정확하게 답변해주세요. 답변 시 조항 번호와 원문 근거를 함께 제시하고, 어느 파일의 내용인지 명시해주세요. 여러 파일이 제공된 경우 관련 파일을 모두 참고하여 종합적으로 답변하세요. 이모지 없이 한국어로 답변하세요.',
+      messages,
+      max_tokens:2000
+    })||'응답을 받지 못했습니다.';
 
     // 히스토리에 추가 (다음 질문에 활용)
     agentHistory.push({role:'user',content:[{type:'text',text:q}]});
@@ -4156,13 +4243,10 @@ async function memoTabComplete(e){
   if(ghost)ghost.classList.add('show');
   const ctx=`사건: ${c.name}(${c.caseNum})\n요약: ${c.summary||'없음'}\n최근 메모: ${(c.memos||[]).slice(-3).map(m=>m.text).join(' / ')}\n현재 입력: ${cur}`;
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:150,
-        messages:[{role:'user',content:`다음 법무 사건 메모의 다음 문장 1-2개를 한국어로 자연스럽게 완성해주세요. 완성된 전체 문장만 출력하고 설명 없이 답해주세요.\n\n${ctx}`}]})
-    });
-    const data=await res.json();
-    const suggestion=data.content?.[0]?.text?.trim()||'';
+    const suggestion=(await callAI({
+      messages:[{role:'user',content:`다음 법무 사건 메모의 다음 문장 1-2개를 한국어로 자연스럽게 완성해주세요. 완성된 전체 문장만 출력하고 설명 없이 답해주세요.\n\n${ctx}`}],
+      max_tokens:150
+    })).trim();
     _memoGhostText=cur+(cur.endsWith(' ')?'':' ')+suggestion;
     if(ghost){ghost.innerHTML=`<span>${esc(_memoGhostText)}</span><div class="memo-ghost-hint">Tab: 수락 · Esc: 거절</div>`;ghost.classList.add('show');}
   }catch(err){if(ghost)ghost.classList.remove('show');}
@@ -4196,12 +4280,7 @@ async function generateReportDraft(){
   const btn=event.target;
   btn.disabled=true;btn.textContent='생성 중...';
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:prompt}]})
-    });
-    const data=await res.json();
-    const draft=data.content?.[0]?.text?.trim()||'';
+    const draft=(await callAI({messages:[{role:'user',content:prompt}],max_tokens:600})).trim();
     // 보고서 본문에 AI 코멘트 섹션 삽입
     const rb=document.getElementById('reportBody');
     if(rb){
@@ -4234,13 +4313,10 @@ async function runNLSearch(){
   if(!q)return;
   if(status)status.textContent='분석 중...';
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
-        messages:[{role:'user',content:`법무 사건 검색 쿼리를 JSON 필터로 변환해주세요. JSON만 출력하고 설명 없이.\n쿼리: "${q}"\n\n가능한 필터 키: keyword(string), category(LIT/ADV/INT/REG/ETC), status(new/review/process/done/hold), lawyer(string), dateFrom(YYYY-MM), dateTo(YYYY-MM)\n\n예시 출력: {"status":"process","lawyer":"김변호사"}`}]})
-    });
-    const data=await res.json();
-    let raw=data.content?.[0]?.text?.trim()||'{}';
+    let raw=(await callAI({
+      messages:[{role:'user',content:`법무 사건 검색 쿼리를 JSON 필터로 변환해주세요. JSON만 출력하고 설명 없이.\n쿼리: "${q}"\n\n가능한 필터 키: keyword(string), category(LIT/ADV/INT/REG/ETC), status(new/review/process/done/hold), lawyer(string), dateFrom(YYYY-MM), dateTo(YYYY-MM)\n\n예시 출력: {"status":"process","lawyer":"김변호사"}`}],
+      max_tokens:200
+    })).trim()||'{}';
     raw=raw.replace(/```json|```/g,'').trim();
     const filter=JSON.parse(raw);
     applyNLFilter(filter);
@@ -4253,6 +4329,8 @@ function applyNLFilter(f){
   if(f.category){const sel=document.getElementById('filterCat');if(sel)sel.value=f.category;}
   if(f.status){const sel=document.getElementById('filterStatus');if(sel)sel.value=f.status;}
   if(f.lawyer){const sel=document.getElementById('filterLawyer');if(sel)sel.value=f.lawyer;}
+  if(f.dateFrom){const el=document.getElementById('filterDateFrom');if(el)el.value=f.dateFrom;}
+  if(f.dateTo){const el=document.getElementById('filterDateTo');if(el)el.value=f.dateTo;}
   renderTable();
 }
 
@@ -4265,13 +4343,10 @@ async function parseEmailAI(){
   if(!raw.trim()){alert('이메일 원문을 먼저 붙여넣어 주세요.');return;}
   const btn=event.target;btn.disabled=true;btn.textContent='AI 분석 중...';
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,
-        messages:[{role:'user',content:`다음 이메일에서 법무 사건 정보를 추출해 JSON으로만 출력하세요. 설명 없이 JSON만.\n\n이메일:\n${raw}\n\n출력 형식:\n{"name":"사건명","category":"LIT|ADV|INT|REG|ETC","lawyer":"담당변호사이름","dept":"의뢰부서","summary":"핵심요약(200자이내)","partyName":"상대방회사명","contact":"상대방담당자"}\n\n분류 기준: LIT=소송·중재, ADV=일반자문, INT=내부자문, REG=규제·행정, ETC=기타`}]})
-    });
-    const data=await res.json();
-    let raw2=data.content?.[0]?.text?.trim()||'{}';
+    let raw2=(await callAI({
+      messages:[{role:'user',content:`다음 이메일에서 법무 사건 정보를 추출해 JSON으로만 출력하세요. 설명 없이 JSON만.\n\n이메일:\n${raw}\n\n출력 형식:\n{"name":"사건명","category":"LIT|ADV|INT|REG|ETC","lawyer":"담당변호사이름","dept":"의뢰부서","summary":"핵심요약(200자이내)","partyName":"상대방회사명","contact":"상대방담당자"}\n\n분류 기준: LIT=소송·중재, ADV=일반자문, INT=내부자문, REG=규제·행정, ETC=기타`}],
+      max_tokens:400
+    })).trim()||'{}';
     raw2=raw2.replace(/```json|```/g,'').trim();
     const parsed=JSON.parse(raw2);
     // 폼 필드 채우기
@@ -4317,13 +4392,7 @@ async function sendGlobalChat(){
   gcHistory.push({role:'user',content:q});
   if(gcHistory.length>6)gcHistory=gcHistory.slice(-6);
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,
-        system:sysPrompt,messages:gcHistory})
-    });
-    const data=await res.json();
-    const reply=data.content?.[0]?.text?.trim()||'응답을 가져올 수 없습니다.';
+    const reply=(await callAI({system:sysPrompt,messages:gcHistory,max_tokens:400})).trim()||'응답을 가져올 수 없습니다.';
     gcHistory.push({role:'assistant',content:reply});
     // 사건번호 링크 변환
     const linkified=reply.replace(/\[(\d{4}-[A-Z]+-\d+)\]/g,(m,num)=>{
@@ -4900,6 +4969,11 @@ function toggleDataPanel(){
   const binInput=document.getElementById('jsonbinBinInput');
   if(keyInput && JSONBIN.API_KEY) keyInput.value=JSONBIN.API_KEY;
   if(binInput && JSONBIN.BIN_ID) binInput.value=JSONBIN.BIN_ID;
+  // AI Key
+  updateAIKeyStatus();
+  const aiKeyInput=document.getElementById('aiKeyInput');
+  if(aiKeyInput && AI_CONFIG.API_KEY) aiKeyInput.value=AI_CONFIG.API_KEY;
+  updateOnlineStatus();
 }
 
 function saveJsonBinConfig(){
@@ -5018,6 +5092,29 @@ function clearJsonBinKey(){
   if(keyInput)keyInput.value='';
   updateSyncStatus();
   showToast('API Key 삭제 · 클라우드 연결 해제');
+}
+
+/* ===== P1-3: AI API Key 관리 ===== */
+function saveAIKey(){
+  const key=document.getElementById('aiKeyInput')?.value.trim();
+  if(!key){alert('API Key를 입력해주세요.');return;}
+  AI_CONFIG.saveKey(key);
+  updateAIKeyStatus();
+  showToast('AI API Key 저장 완료');
+}
+function clearAIKey(){
+  AI_CONFIG.clearKey();
+  const inp=document.getElementById('aiKeyInput');if(inp)inp.value='';
+  updateAIKeyStatus();
+  showToast('AI API Key 삭제 완료');
+}
+function updateAIKeyStatus(){
+  const el=document.getElementById('aiKeyStatus');if(!el)return;
+  if(AI_CONFIG.API_KEY){
+    el.innerHTML=`<span style="color:var(--s-done)">연결됨</span> · ${AI_CONFIG.API_KEY.slice(0,12)}...`;
+  } else {
+    el.innerHTML='<span style="color:var(--text-muted)">미연결 — console.anthropic.com에서 API Key 발급</span>';
+  }
 }
 
 function restoreData(event){
