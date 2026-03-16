@@ -1,6 +1,6 @@
 # Plan.md — 법무팀 사건 관리 시스템 개발 계획
 
-> 최종 업데이트: 2026-03-16 (P0 완료)
+> 최종 업데이트: 2026-03-16 (P0 완료, P1-3,4,5 완료)
 
 ---
 
@@ -55,6 +55,11 @@
 - **자동 백업**: 5분 주기 setInterval + beforeunload, 3슬롯 로테이션, 복원 UI
 - **PIN 인증**: SHA-256 해시 (Web Crypto API), 4자리 PIN 필수, 다중 사용자 LS_USERS 배열
 
+### v1.5 — P1 기능 완성도 (`0eb5534`)
+- **AI 기능 활성화**: callAI() 공통 함수 (7곳 통합), x-api-key/anthropic-version 헤더, AI_CONFIG 객체, 사이드바 AI Key 설정 UI
+- **오프라인→온라인 동기화**: sync queue (localStorage), online/offline 이벤트 리스너, 자동 flush, 실시간 상태 표시
+- **사건 검색 고도화**: 기간 필터 (input type=month, 시작/종료), clearFilters 대응, 자연어 검색 dateFrom/dateTo 지원
+
 ---
 
 ## 2. 향후 개선 계획
@@ -70,13 +75,13 @@
 
 ### 🟠 P1 — 중요 (기능 완성도)
 
-| 항목 | 설명 |
-|------|------|
-| **SharePoint 실연동** | SETUP.md 기반 SP REST API 연동 구현 — CONFIG.OFFLINE_MODE=false 시 SP Lists 읽기/쓰기 |
-| **Power Automate Flow 연결** | F-01(제출), F-06(임시저장), F-07(이의신청) HTTP 트리거 실연동 |
-| **AI 기능 활성화** | Anthropic API Key 연동 → 사건 요약, 파일 에이전트, 글로벌 챗봇 실동작 확인 |
-| **오프라인→온라인 동기화** | 네트워크 끊김 시 localStorage에 쌓고, 복구 시 자동 push하는 큐 메커니즘 |
-| **사건 검색 고도화** | 현재 키워드 검색 → 필터 조합(분류+상태+담당자+기간) 동시 적용, URL 파라미터 연동 |
+| 항목 | 상태 | 설명 |
+|------|------|------|
+| **SharePoint 실연동** | 대기 | IT팀 구성 완료 후 SP REST API 연동 — CONFIG.OFFLINE_MODE=false |
+| **Power Automate Flow 연결** | 대기 | F-01/F-06/F-07 HTTP 트리거 URL 발급 후 연동 |
+| **AI 기능 활성화** | ✅ | callAI() 공통 함수, x-api-key 헤더, AI_CONFIG 관리, 설정 UI |
+| **오프라인→온라인 동기화** | ✅ | sync queue, online/offline 이벤트, 자동 flush, 상태 표시 |
+| **사건 검색 고도화** | ✅ | 기간 필터(월 단위), 자연어 검색 dateFrom/dateTo 지원 |
 
 ### 🟡 P2 — 개선 (UX·편의성)
 
