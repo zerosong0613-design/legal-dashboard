@@ -894,6 +894,19 @@ tbody td{padding:13px 14px;font-size:13.5px;}
         <label class="btn btn-outline btn-sm" style="cursor:pointer;">JSON 복원<input type="file" accept=".json" style="display:none" onchange="restoreData(event)"></label>
       </div>
       <div style="font-size:10px;color:var(--text-muted);margin-top:5px;" id="storageInfo"></div>
+      <!-- JSONBin 클라우드 연동 설정 -->
+      <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
+        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:5px;font-weight:500;">클라우드 동기화 (JSONBin.io)</div>
+        <div style="display:flex;gap:4px;margin-bottom:4px;">
+          <input id="jsonbinKeyInput" type="password" placeholder="API Key (X-Master-Key)" style="flex:1;padding:5px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:11px;outline:none;">
+        </div>
+        <div style="display:flex;gap:4px;margin-bottom:6px;">
+          <input id="jsonbinBinInput" placeholder="Bin ID (없으면 자동 생성)" style="flex:1;padding:5px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:11px;outline:none;">
+          <button class="btn btn-outline btn-sm" onclick="copyBinId()" title="Bin ID 복사" style="font-size:11px;padding:4px 6px;height:26px;min-width:26px;">📋</button>
+          <button class="btn btn-primary btn-sm" onclick="saveJsonBinConfig()" style="font-size:11px;padding:4px 10px;height:26px;">연결</button>
+        </div>
+        <div id="syncStatus" style="font-size:10px;color:var(--text-muted);"></div>
+      </div>
     </div>
   </div>
   <!-- 현재 사용자 표시 -->
@@ -1351,6 +1364,106 @@ const LS = 'legal_v2';
 const LS_USER = 'legalUser';
 const ROLE_LABEL = {lawyer:'매니저',manager:'팀장',executive:'임원'};
 
+/* ===== JSONBin.io 클라우드 연동 ===== */
+const JSONBIN = {
+  API_KEY: '',       // JSONBin.io API Key (X-Master-Key)
+  BIN_ID: '',        // 자동 생성 또는 기존 Bin ID
+  BASE_URL: 'https://api.jsonbin.io/v3',
+  ENABLED: false,    // API_KEY가 있으면 자동 활성화
+  _syncing: false,
+  _lastSync: null,
+
+  init() {
+    // localStorage에서 설정 복원
+    const savedKey = localStorage.getItem('jsonbin_api_key');
+    const savedBin = localStorage.getItem('jsonbin_bin_id');
+    if (savedKey) this.API_KEY = savedKey;
+    if (savedBin) this.BIN_ID = savedBin;
+    this.ENABLED = !!this.API_KEY;
+  },
+
+  saveConfig() {
+    if (this.API_KEY) localStorage.setItem('jsonbin_api_key', this.API_KEY);
+    if (this.BIN_ID) localStorage.setItem('jsonbin_bin_id', this.BIN_ID);
+  },
+
+  headers() {
+    return {
+      'Content-Type': 'application/json',
+      'X-Master-Key': this.API_KEY,
+      'X-Bin-Private': 'true'
+    };
+  },
+
+  async createBin(data) {
+    try {
+      const res = await fetch(`${this.BASE_URL}/b`, {
+        method: 'POST',
+        headers: { ...this.headers(), 'X-Bin-Name': 'legal-dashboard-data' },
+        body: JSON.stringify({ cases: data, updatedAt: new Date().toISOString() })
+      });
+      if (!res.ok) throw new Error(`Create failed: ${res.status}`);
+      const json = await res.json();
+      this.BIN_ID = json.metadata.id;
+      this.saveConfig();
+      console.log('[JSONBin] Bin 생성 완료:', this.BIN_ID);
+      return true;
+    } catch (e) {
+      console.error('[JSONBin] Bin 생성 실패:', e);
+      return false;
+    }
+  },
+
+  async load() {
+    if (!this.ENABLED) return null;
+    // Bin이 없으면 localStorage 데이터로 새 Bin 생성
+    if (!this.BIN_ID) {
+      const localData = JSON.parse(localStorage.getItem(LS) || '[]');
+      const created = await this.createBin(localData);
+      if (created) {
+        showToast('클라우드 저장소 생성 완료');
+        return localData;
+      }
+      return null;
+    }
+    try {
+      const res = await fetch(`${this.BASE_URL}/b/${this.BIN_ID}/latest`, {
+        headers: { 'X-Master-Key': this.API_KEY }
+      });
+      if (!res.ok) throw new Error(`Load failed: ${res.status}`);
+      const json = await res.json();
+      this._lastSync = new Date();
+      console.log('[JSONBin] 데이터 로드 완료');
+      return json.record.cases || [];
+    } catch (e) {
+      console.error('[JSONBin] 로드 실패, localStorage fallback:', e);
+      return null;
+    }
+  },
+
+  async push(data) {
+    if (!this.ENABLED || this._syncing) return;
+    this._syncing = true;
+    try {
+      if (!this.BIN_ID) {
+        await this.createBin(data);
+      } else {
+        const res = await fetch(`${this.BASE_URL}/b/${this.BIN_ID}`, {
+          method: 'PUT',
+          headers: this.headers(),
+          body: JSON.stringify({ cases: data, updatedAt: new Date().toISOString() })
+        });
+        if (!res.ok) throw new Error(`Push failed: ${res.status}`);
+      }
+      this._lastSync = new Date();
+    } catch (e) {
+      console.error('[JSONBin] 저장 실패:', e);
+    } finally {
+      this._syncing = false;
+    }
+  }
+};
+
 /* ===== 상태 ===== */
 let cases=[], curId=null, pendingClose=false, curCat='LIT', regMode='manual';
 let currentUser=null; // {name, role}
@@ -1359,6 +1472,7 @@ let agentHistory=[]; // [{role,content}] - 대화 히스토리
 
 /* ===== 초기화 ===== */
 document.addEventListener('DOMContentLoaded',()=>{
+  // 1) localStorage에서 즉시 로드 (빠른 초기 렌더)
   try{cases=JSON.parse(localStorage.getItem(LS)||'[]');}catch{cases=[];}
   // N8: 초기 스토리지 정보 업데이트
   setTimeout(updateStorageInfo, 500);
@@ -1380,12 +1494,44 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('e-date').value=t;
   initReport();
   renderAll();
+
+  // 2) JSONBin 클라우드 동기화 (비동기 — localStorage 먼저 렌더 후 클라우드 데이터로 갱신)
+  JSONBIN.init();
+  if(JSONBIN.ENABLED){
+    JSONBIN.load().then(cloudData=>{
+      if(cloudData && cloudData.length){
+        // 클라우드 데이터가 더 많으면 클라우드 우선, 아니면 로컬 마이그레이션
+        if(cloudData.length >= cases.length){
+          cases = cloudData;
+          localStorage.setItem(LS, JSON.stringify(cases));
+        } else {
+          // 로컬이 더 많으면 클라우드에 push (마이그레이션)
+          JSONBIN.push(cases);
+        }
+        renderAll();
+        updateSyncStatus();
+      } else if(cases.length > 0){
+        // 클라우드 비어있고 로컬에 데이터 있으면 마이그레이션
+        JSONBIN.push(cases);
+        updateSyncStatus();
+      }
+    });
+  }
+  updateSyncStatus();
 });
 
 /* ===== 유틸 ===== */
 function today(){return new Date().toISOString().split('T')[0];}
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function save(){localStorage.setItem(LS,JSON.stringify(cases));}
+function save(){
+  localStorage.setItem(LS,JSON.stringify(cases));
+  // JSONBin 클라우드 동기화 (debounced)
+  if(JSONBIN.ENABLED){
+    clearTimeout(save._timer);
+    save._timer=setTimeout(()=>JSONBIN.push(cases),1500);
+  }
+}
+save._timer=null;
 function dday(ds){
   // B1 fix: 'YYYY-MM-DD' 를 UTC가 아닌 로컬 타임존으로 파싱 (한국 UTC+9 환경 오차 방지)
   const t=new Date();t.setHours(0,0,0,0);
@@ -4629,6 +4775,66 @@ function toggleDataPanel(){
   const w=document.getElementById('webhookPanel');
   if(p){p.classList.toggle('open');if(w)w.classList.remove('open');}
   updateStorageInfo();
+  updateSyncStatus();
+  // 입력 필드에 현재 값 표시
+  const keyInput=document.getElementById('jsonbinKeyInput');
+  const binInput=document.getElementById('jsonbinBinInput');
+  if(keyInput && JSONBIN.API_KEY) keyInput.value=JSONBIN.API_KEY;
+  if(binInput && JSONBIN.BIN_ID) binInput.value=JSONBIN.BIN_ID;
+}
+
+function saveJsonBinConfig(){
+  const key=document.getElementById('jsonbinKeyInput')?.value.trim();
+  const bin=document.getElementById('jsonbinBinInput')?.value.trim();
+  if(!key){alert('API Key를 입력해주세요.');return;}
+  JSONBIN.API_KEY=key;
+  JSONBIN.BIN_ID=bin||'';
+  JSONBIN.ENABLED=true;
+  JSONBIN.saveConfig();
+  // 연결 테스트: Bin이 없으면 생성, 있으면 로드
+  JSONBIN.load().then(data=>{
+    if(data!==null){
+      if(data.length && data.length>=cases.length){
+        cases=data;
+        localStorage.setItem(LS,JSON.stringify(cases));
+        renderAll();
+      } else if(cases.length){
+        JSONBIN.push(cases);
+      }
+      // Bin ID 자동 생성된 경우 입력 필드에 표시
+      const binInput=document.getElementById('jsonbinBinInput');
+      if(binInput) binInput.value=JSONBIN.BIN_ID;
+      showToast('클라우드 연결 완료');
+    } else {
+      showToast('클라우드 연결 실패 — API Key를 확인하세요');
+    }
+    updateSyncStatus();
+  });
+}
+
+function updateSyncStatus(){
+  const el=document.getElementById('syncStatus');if(!el)return;
+  if(!JSONBIN.ENABLED){
+    el.innerHTML='<span style="color:var(--text-muted)">미연결 — API Key를 입력하세요</span>';
+    return;
+  }
+  const syncTime=JSONBIN._lastSync?JSONBIN._lastSync.toLocaleTimeString('ko-KR'):'—';
+  el.innerHTML=`<span style="color:var(--s-done)">연결됨</span> · Bin: ${JSONBIN.BIN_ID?JSONBIN.BIN_ID.slice(0,8)+'...':'생성 대기'} · 마지막 동기화: ${syncTime}`;
+}
+
+function copyBinId(){
+  const id=JSONBIN.BIN_ID||document.getElementById('jsonbinBinInput')?.value.trim();
+  if(!id){showToast('Bin ID가 아직 없습니다');return;}
+  navigator.clipboard.writeText(id).then(()=>showToast('Bin ID 복사됨: '+id)).catch(()=>{
+    // fallback
+    const tmp=document.createElement('input');tmp.value=id;document.body.appendChild(tmp);tmp.select();document.execCommand('copy');document.body.removeChild(tmp);
+    showToast('Bin ID 복사됨: '+id);
+  });
+}
+
+function forceSync(){
+  if(!JSONBIN.ENABLED){showToast('클라우드 미연결');return;}
+  JSONBIN.push(cases).then(()=>{showToast('수동 동기화 완료');updateSyncStatus();});
 }
 
 function updateStorageInfo(){
