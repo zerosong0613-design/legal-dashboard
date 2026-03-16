@@ -899,6 +899,13 @@ tbody td{padding:13px 14px;font-size:13.5px;}
         <label class="btn btn-outline btn-sm" style="cursor:pointer;">JSON 복원<input type="file" accept=".json" style="display:none" onchange="restoreData(event)"></label>
       </div>
       <div style="font-size:10px;color:var(--text-muted);margin-top:5px;" id="storageInfo"></div>
+      <!-- P0-3: 자동 백업 -->
+      <div style="margin-top:6px;font-size:10px;color:var(--text-muted);" id="autoBackupStatus">자동 백업: —</div>
+      <div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">
+        <button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 6px;height:22px;" onclick="restoreAutoBackup(1)">최근 1</button>
+        <button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 6px;height:22px;" onclick="restoreAutoBackup(2)">최근 2</button>
+        <button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 6px;height:22px;" onclick="restoreAutoBackup(3)">최근 3</button>
+      </div>
       <!-- JSONBin 클라우드 연동 설정 -->
       <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
         <div style="font-size:11px;color:var(--text-secondary);margin-bottom:5px;font-weight:500;">클라우드 동기화 (JSONBin.io)</div>
@@ -909,6 +916,11 @@ tbody td{padding:13px 14px;font-size:13.5px;}
         </div>
         <button class="btn btn-primary btn-sm" onclick="saveJsonBinConfig()" style="font-size:11px;padding:4px 10px;height:26px;width:100%;justify-content:center;margin-bottom:4px;">연결</button>
         <div id="syncStatus" style="font-size:10px;color:var(--text-muted);word-break:break-all;"></div>
+        <div style="display:flex;gap:4px;margin-top:4px;">
+          <button class="btn btn-danger btn-sm" onclick="clearJsonBinKey()" style="font-size:10px;padding:2px 6px;height:22px;">키 삭제</button>
+          <button class="btn btn-outline btn-sm" onclick="forceSync()" style="font-size:10px;padding:2px 6px;height:22px;">수동 동기화</button>
+        </div>
+        <div style="font-size:9px;color:#dc2626;margin-top:5px;line-height:1.4;">⚠ API Key는 브라우저에 저장됩니다. 공용 PC에서는 사용 후 반드시 키를 삭제하세요.</div>
       </div>
     </div>
   </div>
@@ -1279,13 +1291,27 @@ tbody td{padding:13px 14px;font-size:13.5px;}
     <div class="auth-sub">법무팀 전용 시스템 · 사용자 확인</div>
     <div class="auth-label">이름</div>
     <input class="auth-input" id="authName" placeholder="홍길동" maxlength="20">
-    <div class="auth-label">역할</div>
+    <div class="auth-label">PIN (4자리 숫자)</div>
+    <input class="auth-input" id="authPin" type="password" placeholder="••••" maxlength="4" inputmode="numeric" pattern="[0-9]*">
+    <div class="auth-label">역할 <span style="font-size:10px;color:var(--text-muted);font-weight:400;">(최초 등록 시 선택)</span></div>
     <div class="auth-role-grid">
       <button class="auth-role-btn selected" data-role="lawyer" onclick="selectRole(this)">매니저</button>
       <button class="auth-role-btn" data-role="manager" onclick="selectRole(this)">팀장</button>
       <button class="auth-role-btn" data-role="executive" onclick="selectRole(this)">임원</button>
     </div>
     <button class="auth-submit" onclick="submitAuth()">입장하기</button>
+  </div>
+</div>
+
+<!-- P0-1: 데이터 충돌 해결 모달 -->
+<div class="auth-overlay" id="conflictOverlay" style="display:none">
+  <div class="auth-box" style="max-width:420px">
+    <div class="auth-logo" style="font-size:16px">데이터 충돌 감지</div>
+    <div id="conflictInfo" style="font-size:12px;color:var(--text-secondary);margin:12px 0;line-height:1.7;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary" style="flex:1" onclick="resolveConflict('cloud')">클라우드 사용</button>
+      <button class="btn btn-outline" style="flex:1" onclick="resolveConflict('local')">로컬 유지</button>
+    </div>
   </div>
 </div>
 
@@ -1369,7 +1395,24 @@ const CAT_COLOR = {LIT:'#c0392b',ADV:'#2563eb',INT:'#7c3aed',REG:'#c2410c',ETC:'
 const STS = {new:'접수',review:'검토중',process:'처리중',done:'완료',hold:'보류'};
 const LS = 'legal_v2';
 const LS_USER = 'legalUser';
+const LS_USERS = 'legalUsers';
+const LS_META = 'legal_meta';
+const LS_AUTOBACKUP_PREFIX = 'legal_autobackup_';
+const LS_AUTOBACKUP_TIME = 'legal_lastAutoBackup';
+const AUTOBACKUP_INTERVAL = 5 * 60 * 1000; // 5분
+const AUTOBACKUP_MAX_SLOTS = 3;
 const ROLE_LABEL = {lawyer:'매니저',manager:'팀장',executive:'임원'};
+
+/* ===== P0-2: API Key 난독화 ===== */
+function obfuscateKey(plain){return btoa(plain.split('').reverse().join(''));}
+function deobfuscateKey(encoded){try{return atob(encoded).split('').reverse().join('');}catch{return encoded;}}
+
+/* ===== P0-1: 로컬 메타데이터 (충돌 감지용) ===== */
+function getLocalMeta(){try{return JSON.parse(localStorage.getItem(LS_META))||{updatedAt:new Date(0).toISOString(),version:0};}catch{return{updatedAt:new Date(0).toISOString(),version:0};}}
+function setLocalMeta(){const m=getLocalMeta();const meta={updatedAt:new Date().toISOString(),version:m.version+1};localStorage.setItem(LS_META,JSON.stringify(meta));return meta;}
+
+/* ===== P0-4: PIN 해시 ===== */
+async function hashPin(pin){const data=new TextEncoder().encode(pin);const buf=await crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
 
 /* ===== JSONBin.io 클라우드 연동 ===== */
 const JSONBIN = {
@@ -1381,16 +1424,15 @@ const JSONBIN = {
   _lastSync: null,
 
   init() {
-    // localStorage에서 설정 복원
     const savedKey = localStorage.getItem('jsonbin_api_key');
     const savedBin = localStorage.getItem('jsonbin_bin_id');
-    if (savedKey) this.API_KEY = savedKey;
+    if (savedKey) this.API_KEY = deobfuscateKey(savedKey);
     if (savedBin) this.BIN_ID = savedBin;
     this.ENABLED = !!this.API_KEY;
   },
 
   saveConfig() {
-    if (this.API_KEY) localStorage.setItem('jsonbin_api_key', this.API_KEY);
+    if (this.API_KEY) localStorage.setItem('jsonbin_api_key', obfuscateKey(this.API_KEY));
     if (this.BIN_ID) localStorage.setItem('jsonbin_bin_id', this.BIN_ID);
   },
 
@@ -1407,7 +1449,7 @@ const JSONBIN = {
       const res = await fetch(`${this.BASE_URL}/b`, {
         method: 'POST',
         headers: { ...this.headers(), 'X-Bin-Name': 'legal-dashboard-data' },
-        body: JSON.stringify({ cases: data, updatedAt: new Date().toISOString() })
+        body: JSON.stringify({ cases: data, updatedAt: new Date().toISOString(), version: getLocalMeta().version })
       });
       if (!res.ok) throw new Error(`Create failed: ${res.status}`);
       const json = await res.json();
@@ -1423,13 +1465,12 @@ const JSONBIN = {
 
   async load() {
     if (!this.ENABLED) return null;
-    // Bin이 없으면 localStorage 데이터로 새 Bin 생성
     if (!this.BIN_ID) {
       const localData = JSON.parse(localStorage.getItem(LS) || '[]');
       const created = await this.createBin(localData);
       if (created) {
         showToast('클라우드 저장소 생성 완료');
-        return localData;
+        return {cases:localData, updatedAt:new Date().toISOString(), version:getLocalMeta().version};
       }
       return null;
     }
@@ -1441,7 +1482,7 @@ const JSONBIN = {
       const json = await res.json();
       this._lastSync = new Date();
       console.log('[JSONBin] 데이터 로드 완료');
-      return json.record.cases || [];
+      return json.record; // {cases, updatedAt, version}
     } catch (e) {
       console.error('[JSONBin] 로드 실패, localStorage fallback:', e);
       return null;
@@ -1458,7 +1499,7 @@ const JSONBIN = {
         const res = await fetch(`${this.BASE_URL}/b/${this.BIN_ID}`, {
           method: 'PUT',
           headers: this.headers(),
-          body: JSON.stringify({ cases: data, updatedAt: new Date().toISOString() })
+          body: JSON.stringify({ cases: data, updatedAt: new Date().toISOString(), version: getLocalMeta().version })
         });
         if (!res.ok) throw new Error(`Push failed: ${res.status}`);
       }
@@ -1502,37 +1543,44 @@ document.addEventListener('DOMContentLoaded',()=>{
   initReport();
   renderAll();
 
-  // 2) JSONBin 클라우드 동기화 (비동기 — localStorage 먼저 렌더 후 클라우드 데이터로 갱신)
+  // 2) JSONBin 클라우드 동기화 (충돌 감지)
   JSONBIN.init();
   if(JSONBIN.ENABLED){
-    JSONBIN.load().then(cloudData=>{
-      if(cloudData && cloudData.length){
-        // 클라우드 데이터가 더 많으면 클라우드 우선, 아니면 로컬 마이그레이션
-        if(cloudData.length >= cases.length){
-          cases = cloudData;
-          localStorage.setItem(LS, JSON.stringify(cases));
+    JSONBIN.load().then(record=>{
+      if(!record) return;
+      const cloudCases=record.cases||[];
+      const cloudTime=record.updatedAt||new Date(0).toISOString();
+      const cloudVer=record.version||0;
+      const localMeta=getLocalMeta();
+
+      if(!cloudCases.length && cases.length){
+        JSONBIN.push(cases);
+      } else if(!cases.length && cloudCases.length){
+        cases=cloudCases; localStorage.setItem(LS,JSON.stringify(cases));
+      } else if(cloudCases.length && cases.length && cloudVer!==localMeta.version){
+        if(new Date(cloudTime)>new Date(localMeta.updatedAt)){
+          showConflictModal(cloudCases,cloudTime,localMeta.updatedAt);
         } else {
-          // 로컬이 더 많으면 클라우드에 push (마이그레이션)
           JSONBIN.push(cases);
         }
-        renderAll();
-        updateSyncStatus();
-      } else if(cases.length > 0){
-        // 클라우드 비어있고 로컬에 데이터 있으면 마이그레이션
-        JSONBIN.push(cases);
-        updateSyncStatus();
       }
+      renderAll(); updateSyncStatus();
     });
   }
   updateSyncStatus();
+
+  // 3) 자동 백업 (5분 주기 + 페이지 종료 시)
+  setInterval(autoBackup, AUTOBACKUP_INTERVAL);
+  setTimeout(updateAutoBackupStatus, 600);
 });
+window.addEventListener('beforeunload',()=>{autoBackup();});
 
 /* ===== 유틸 ===== */
 function today(){return new Date().toISOString().split('T')[0];}
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function save(){
   localStorage.setItem(LS,JSON.stringify(cases));
-  // JSONBin 클라우드 동기화 (debounced)
+  setLocalMeta();
   if(JSONBIN.ENABLED){
     clearTimeout(save._timer);
     save._timer=setTimeout(()=>JSONBIN.push(cases),1500);
@@ -1549,11 +1597,43 @@ function dday(ds){
 function fmtDday(d){if(d<0)return`D+${Math.abs(d)}`;if(d===0)return'D-DAY';return`D-${d}`;}
 function ym(){const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;}
 
-/* ===== 사용자 인증 (PIN 간이) ===== */
+/* ===== P0-1: 데이터 충돌 해결 ===== */
+let _pendingCloudCases=null;
+function showConflictModal(cloudCases,cloudTime,localTime){
+  _pendingCloudCases=cloudCases;
+  const el=document.getElementById('conflictOverlay');
+  const info=document.getElementById('conflictInfo');
+  if(!el||!info)return;
+  const ct=new Date(cloudTime).toLocaleString('ko-KR');
+  const lt=new Date(localTime).toLocaleString('ko-KR');
+  info.innerHTML=`다른 기기에서 데이터가 변경되었습니다.<br><br>
+    <b>클라우드:</b> ${cloudCases.length}건 · ${ct}<br>
+    <b>로컬:</b> ${cases.length}건 · ${lt}<br><br>
+    어느 데이터를 사용할까요?`;
+  el.style.display='flex';
+}
+function resolveConflict(choice){
+  if(choice==='cloud'&&_pendingCloudCases){
+    cases=_pendingCloudCases;
+    localStorage.setItem(LS,JSON.stringify(cases));
+    setLocalMeta();
+    showToast('클라우드 데이터로 교체됨');
+  } else {
+    JSONBIN.push(cases);
+    showToast('로컬 데이터 유지 · 클라우드에 업로드');
+  }
+  _pendingCloudCases=null;
+  document.getElementById('conflictOverlay').style.display='none';
+  renderAll();updateSyncStatus();
+}
+
+/* ===== 사용자 인증 (PIN + SHA-256 해시) ===== */
 let authSelectedRole='lawyer';
 
 function showAuthModal(){
   document.getElementById('authOverlay').style.display='flex';
+  document.getElementById('authName').value='';
+  document.getElementById('authPin').value='';
   document.getElementById('authName').focus();
 }
 
@@ -1563,10 +1643,34 @@ function selectRole(btn){
   btn.classList.add('selected');
 }
 
-function submitAuth(){
+async function submitAuth(){
   const name=document.getElementById('authName').value.trim();
+  const pin=document.getElementById('authPin').value.trim();
   if(!name){document.getElementById('authName').focus();return;}
-  currentUser={name,role:authSelectedRole};
+  if(!pin||pin.length<4){document.getElementById('authPin').focus();return;}
+
+  const pinHash=await hashPin(pin);
+  // 등록된 사용자 목록
+  let users=[];
+  try{users=JSON.parse(localStorage.getItem(LS_USERS)||'[]');}catch{users=[];}
+  const existing=users.find(u=>u.name===name);
+
+  if(existing){
+    // 기존 사용자: PIN 검증
+    if(existing.pinHash&&existing.pinHash!==pinHash){
+      alert('PIN이 일치하지 않습니다.');return;
+    }
+    // PIN 없는 레거시 사용자 → PIN 업그레이드
+    if(!existing.pinHash){existing.pinHash=pinHash;localStorage.setItem(LS_USERS,JSON.stringify(users));}
+    currentUser={name:existing.name,role:existing.role,pinHash:existing.pinHash};
+  } else {
+    // 신규 사용자 등록
+    const newUser={name,role:authSelectedRole,pinHash};
+    users.push(newUser);
+    localStorage.setItem(LS_USERS,JSON.stringify(users));
+    currentUser=newUser;
+  }
+
   localStorage.setItem(LS_USER,JSON.stringify(currentUser));
   document.getElementById('authOverlay').style.display='none';
   applyUser();
@@ -1586,7 +1690,7 @@ function applyUser(){
 // Enter 키로 인증 제출
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&document.getElementById('authOverlay')?.style.display!=='none'
-     &&document.activeElement?.id==='authName') submitAuth();
+     &&(document.activeElement?.id==='authName'||document.activeElement?.id==='authPin')) submitAuth();
 });
 
 /* ===== 접근 제어 — canAccess(case) ===== */
@@ -4806,17 +4910,23 @@ function saveJsonBinConfig(){
   JSONBIN.BIN_ID=bin||'';
   JSONBIN.ENABLED=true;
   JSONBIN.saveConfig();
-  // 연결 테스트: Bin이 없으면 생성, 있으면 로드
-  JSONBIN.load().then(data=>{
-    if(data!==null){
-      if(data.length && data.length>=cases.length){
-        cases=data;
-        localStorage.setItem(LS,JSON.stringify(cases));
-        renderAll();
+  JSONBIN.load().then(record=>{
+    if(record!==null){
+      const cloudCases=record.cases||[];
+      const cloudTime=record.updatedAt||new Date(0).toISOString();
+      const cloudVer=record.version||0;
+      const localMeta=getLocalMeta();
+      if(cloudCases.length && cases.length && cloudVer!==localMeta.version){
+        if(new Date(cloudTime)>new Date(localMeta.updatedAt)){
+          showConflictModal(cloudCases,cloudTime,localMeta.updatedAt);
+        } else {
+          JSONBIN.push(cases);
+        }
+      } else if(cloudCases.length && !cases.length){
+        cases=cloudCases;localStorage.setItem(LS,JSON.stringify(cases));renderAll();
       } else if(cases.length){
         JSONBIN.push(cases);
       }
-      // Bin ID 자동 생성된 경우 입력 필드에 표시
       const binInput=document.getElementById('jsonbinBinInput');
       if(binInput) binInput.value=JSONBIN.BIN_ID;
       showToast('클라우드 연결 완료');
@@ -4866,6 +4976,48 @@ function backupData(){
   a.download=`legal_backup_${today()}.json`;
   a.click();
   showToast(`${cases.length}건 백업 완료`);
+}
+
+/* ===== P0-3: 자동 백업 (5분 주기, 3슬롯 로테이션) ===== */
+function autoBackup(){
+  if(!cases.length)return;
+  const data=JSON.stringify(cases);
+  if(data.length>1.2*1024*1024)return; // 1.2MB 초과 시 스킵
+  localStorage.removeItem(LS_AUTOBACKUP_PREFIX+'3');
+  const s2=localStorage.getItem(LS_AUTOBACKUP_PREFIX+'2');
+  if(s2)localStorage.setItem(LS_AUTOBACKUP_PREFIX+'3',s2);
+  const s1=localStorage.getItem(LS_AUTOBACKUP_PREFIX+'1');
+  if(s1)localStorage.setItem(LS_AUTOBACKUP_PREFIX+'2',s1);
+  localStorage.setItem(LS_AUTOBACKUP_PREFIX+'1',JSON.stringify({timestamp:new Date().toISOString(),cases}));
+  localStorage.setItem(LS_AUTOBACKUP_TIME,new Date().toISOString());
+  updateAutoBackupStatus();
+}
+function updateAutoBackupStatus(){
+  const el=document.getElementById('autoBackupStatus');if(!el)return;
+  const t=localStorage.getItem(LS_AUTOBACKUP_TIME);
+  el.textContent='자동 백업: '+(t?new Date(t).toLocaleString('ko-KR'):'—');
+}
+function restoreAutoBackup(slot){
+  const raw=localStorage.getItem(LS_AUTOBACKUP_PREFIX+slot);
+  if(!raw){showToast('해당 슬롯에 백업이 없습니다');return;}
+  try{
+    const data=JSON.parse(raw);
+    const ts=new Date(data.timestamp).toLocaleString('ko-KR');
+    if(!confirm(`백업 시점: ${ts}\n${data.cases.length}건 복원하시겠습니까?\n\n현재 데이터는 덮어씌워집니다.`))return;
+    cases=data.cases;save();renderAll();
+    showToast(`${data.cases.length}건 복원 완료 (${ts})`);
+  }catch{showToast('백업 데이터가 손상되었습니다');}
+}
+
+/* ===== P0-2: API Key 삭제 ===== */
+function clearJsonBinKey(){
+  if(!confirm('클라우드 연결을 해제합니다. API Key가 삭제됩니다.'))return;
+  localStorage.removeItem('jsonbin_api_key');
+  JSONBIN.API_KEY='';JSONBIN.ENABLED=false;
+  const keyInput=document.getElementById('jsonbinKeyInput');
+  if(keyInput)keyInput.value='';
+  updateSyncStatus();
+  showToast('API Key 삭제 · 클라우드 연결 해제');
 }
 
 function restoreData(event){
