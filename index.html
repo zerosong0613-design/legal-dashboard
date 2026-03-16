@@ -897,15 +897,13 @@ tbody td{padding:13px 14px;font-size:13.5px;}
       <!-- JSONBin 클라우드 연동 설정 -->
       <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
         <div style="font-size:11px;color:var(--text-secondary);margin-bottom:5px;font-weight:500;">클라우드 동기화 (JSONBin.io)</div>
+        <input id="jsonbinKeyInput" type="password" placeholder="API Key (X-Master-Key)" style="width:100%;padding:5px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:11px;outline:none;margin-bottom:4px;box-sizing:border-box;">
         <div style="display:flex;gap:4px;margin-bottom:4px;">
-          <input id="jsonbinKeyInput" type="password" placeholder="API Key (X-Master-Key)" style="flex:1;padding:5px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:11px;outline:none;">
+          <input id="jsonbinBinInput" placeholder="Bin ID (없으면 자동 생성)" style="flex:1;min-width:0;padding:5px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:11px;outline:none;box-sizing:border-box;">
+          <button class="btn btn-outline btn-sm" onclick="copyBinId()" title="Bin ID 복사" style="font-size:11px;padding:4px 6px;height:26px;min-width:26px;flex-shrink:0;">📋</button>
         </div>
-        <div style="display:flex;gap:4px;margin-bottom:6px;">
-          <input id="jsonbinBinInput" placeholder="Bin ID (없으면 자동 생성)" style="flex:1;padding:5px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:11px;outline:none;">
-          <button class="btn btn-outline btn-sm" onclick="copyBinId()" title="Bin ID 복사" style="font-size:11px;padding:4px 6px;height:26px;min-width:26px;">📋</button>
-          <button class="btn btn-primary btn-sm" onclick="saveJsonBinConfig()" style="font-size:11px;padding:4px 10px;height:26px;">연결</button>
-        </div>
-        <div id="syncStatus" style="font-size:10px;color:var(--text-muted);"></div>
+        <button class="btn btn-primary btn-sm" onclick="saveJsonBinConfig()" style="font-size:11px;padding:4px 10px;height:26px;width:100%;justify-content:center;margin-bottom:4px;">연결</button>
+        <div id="syncStatus" style="font-size:10px;color:var(--text-muted);word-break:break-all;"></div>
       </div>
     </div>
   </div>
