@@ -367,7 +367,7 @@ tbody td{padding:13px 14px;font-size:13.5px;}
 .dp-field .dp-val{font-size:13px;color:var(--text-primary);font-weight:500;}
 .dp-field.full{grid-column:1/-1;}
 /* 요약 박스 */
-.dp-summary-text{font-size:13px;color:var(--text-secondary);line-height:1.8;white-space:pre-wrap;background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;min-height:60px;}
+.dp-summary-text{font-size:13px;color:var(--text-secondary);line-height:1.8;white-space:pre-wrap;background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;min-height:60px;max-height:300px;overflow-y:auto;}
 /* 관계자 */
 .party-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
 .party-row:last-child{border-bottom:none;}
@@ -377,6 +377,9 @@ tbody td{padding:13px 14px;font-size:13.5px;}
 /* 기일 (상세) */
 .dp-dl-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);}
 .dp-dl-item:last-child{border-bottom:none;}
+.dp-dl-edit{background:none;border:none;cursor:pointer;font-size:12px;padding:0 2px;color:var(--text-muted);opacity:0;transition:opacity .15s;}
+.dp-dl-item:hover .dp-dl-edit{opacity:1;}
+.dp-dl-edit:hover{color:var(--text-primary);}
 .dp-dl-name{flex:1;font-size:13px;color:var(--text-primary);}
 .dp-dl-date{font-size:12px;color:var(--text-secondary);}
 /* 파일 (탐색기 스타일) */
@@ -392,8 +395,18 @@ tbody td{padding:13px 14px;font-size:13.5px;}
 /* 메모 (상세) */
 .dp-memo-item{padding:8px 0;border-bottom:1px solid var(--border);}
 .dp-memo-item:last-child{border-bottom:none;}
+.dp-memo-actions{float:right;display:inline-flex;gap:2px;opacity:0;transition:opacity .15s;}
+.dp-memo-item:hover .dp-memo-actions{opacity:1;}
+.dp-memo-action-btn{border:none;background:none;cursor:pointer;font-size:12px;padding:2px 4px;border-radius:3px;color:var(--text-muted);}
+.dp-memo-action-btn:hover{background:var(--bg);color:var(--text-primary);}
+.dp-memo-del:hover{background:#fee;color:#e53e3e;}
 .dp-memo-meta{font-size:10px;color:var(--text-muted);margin-bottom:3px;}
 .dp-memo-text{font-size:12px;color:var(--text-secondary);line-height:1.6;}
+.dp-memo-author{font-weight:500;color:var(--navy);margin-right:4px;}
+.memo-mention{color:var(--s-process);font-weight:500;}
+.memo-mention-dropdown{position:absolute;background:var(--white);border:1px solid var(--border);border-radius:6px;box-shadow:var(--shadow-md);max-height:140px;overflow-y:auto;z-index:9999;font-size:12px;}
+.memo-mention-dropdown div{padding:6px 12px;cursor:pointer;}
+.memo-mention-dropdown div:hover{background:var(--bg);}
 /* 통합 타임라인 (F-D6) */
 .dp-timeline-wrap{padding:0 28px 28px;}
 .dp-tl-item{display:flex;gap:12px;padding-bottom:14px;position:relative;}
@@ -409,7 +422,7 @@ tbody td{padding:13px 14px;font-size:13.5px;}
 .dp-tl-note{font-size:12px;color:var(--text-secondary);margin-top:3px;}
 /* 인라인 편집 폼 */
 .dp-edit-form{padding:12px 14px;background:var(--bg);border-top:1px solid var(--border);}
-.dp-edit-row{display:flex;gap:6px;margin-bottom:8px;align-items:flex-end;}
+.dp-edit-row{display:flex;gap:6px;margin-bottom:8px;align-items:flex-end;flex-wrap:wrap;}
 .dp-edit-row:last-child{margin-bottom:0;}
 .dp-edit-row input,.dp-edit-row select,.dp-edit-row textarea{flex:1;padding:7px 10px;border:1px solid var(--border-dark);border-radius:var(--radius-sm);font-size:13px;color:var(--text-primary);background:var(--white);outline:none;font-family:inherit;}
 .dp-edit-row input:focus,.dp-edit-row select:focus,.dp-edit-row textarea:focus{border-color:var(--navy);}
@@ -455,6 +468,8 @@ tbody td{padding:13px 14px;font-size:13.5px;}
   thead th:nth-child(n+5){display:none;}
   tbody td:nth-child(n+5){display:none;}
   .modal-overlay{padding:16px 10px;}
+  .reg-deadline-row,.reg-party-row{flex-wrap:wrap;}
+  .reg-party-row select{max-width:none;flex:1 1 100%;}
   .report-body{padding:24px 20px;}
   /* ⑥ 모바일 필터 바: 검색창 + 필터 토글 버튼 */
   .filter-bar{flex-direction:row;flex-wrap:wrap;}
@@ -526,6 +541,40 @@ tbody td{padding:13px 14px;font-size:13.5px;}
 .conf-count-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:#fef2f2;color:#dc2626;border-radius:4px;font-size:11px;font-weight:500;border:0.5px solid #fecaca;margin-left:8px;}
 /* 대외비 토글 */
 .conf-toggle-row{display:flex;align-items:center;gap:10px;padding:8px 0;}
+.reg-quick-section{margin:12px 0 8px;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;}
+.reg-quick-section .form-section-header{margin-top:0;padding-top:0;}
+.reg-quick-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.reg-quick-header span{font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:.08em;}
+.reg-deadline-row,.reg-party-row{display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap;}
+.reg-deadline-row input,.reg-party-row input,.reg-party-row select{flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--bg-main);}
+.reg-deadline-row input[type="date"]{min-width:140px;max-width:160px;}
+.reg-deadline-row .dl-preset-select{flex:0 0 100%;margin-bottom:2px;}
+.reg-party-row select{max-width:120px;flex:0 0 auto;}
+.reg-remove-btn{width:28px;height:28px;border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:16px;border-radius:4px;flex-shrink:0;}
+.reg-remove-btn:hover{background:#fee;color:#e53e3e;}
+.reg-add-btn{background:none;border:1px dashed var(--border);color:var(--text-secondary);font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;margin-top:2px;}
+.reg-add-btn:hover{border-color:var(--navy);color:var(--navy);}
+.reg-tags-input{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--bg-main);}
+.reg-tags-hint{font-size:11px;color:var(--text-muted);margin-top:3px;}
+/* 파일 드래그앤드롭 영역 */
+#file-drop-zone{border:2px dashed var(--border-dark);border-radius:var(--radius);padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg);}
+#file-drop-zone:hover,#file-drop-zone.dragover{border-color:var(--gold);background:#fffde7;}
+#file-drop-zone .drop-icon{font-size:32px;opacity:.3;margin-bottom:8px;}
+#file-drop-zone .drop-text{font-size:13px;color:var(--text-secondary);}
+#file-drop-zone .drop-hint{font-size:11px;color:var(--text-muted);margin-top:4px;}
+.reg-file-info{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;margin-top:8px;font-size:12px;}
+.reg-file-info .file-name{font-weight:500;color:var(--text-primary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.reg-file-info .file-size{color:var(--text-muted);flex-shrink:0;}
+.reg-file-info .file-remove{cursor:pointer;color:var(--text-muted);font-size:16px;}
+.reg-file-info .file-remove:hover{color:var(--s-new);}
+.reg-file-preview{margin-top:8px;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.reg-file-preview summary{padding:6px 12px;font-size:12px;font-weight:500;color:var(--text-secondary);cursor:pointer;background:var(--bg);}
+.reg-file-preview pre{max-height:200px;overflow:auto;padding:10px 12px;font-size:11px;color:var(--text-secondary);white-space:pre-wrap;word-break:break-all;margin:0;}
+/* AI 자동 입력 하이라이트 */
+.ai-highlight{background:#fffde7 !important;transition:background .5s;}
+/* 기일 프리셋 드롭다운 */
+.dl-preset-select{padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text-secondary);background:var(--bg);cursor:pointer;max-width:160px;}
+.dl-preset-select:hover{border-color:var(--navy);}
 .toggle-switch{position:relative;width:36px;height:20px;cursor:pointer;}
 .toggle-switch input{opacity:0;width:0;height:0;}
 .toggle-slider{position:absolute;inset:0;background:var(--border-dark);border-radius:20px;transition:.3s;}
@@ -552,6 +601,11 @@ tbody td{padding:13px 14px;font-size:13.5px;}
 .agent-msg-ai{align-self:flex-start;background:var(--bg);color:var(--text-primary);border:0.5px solid var(--border);}
 .agent-msg-source{font-size:10px;color:var(--text-muted);margin-top:4px;border-top:1px solid var(--border);padding-top:4px;}
 .agent-msg-thinking{align-self:flex-start;color:var(--text-muted);font-size:12px;padding:6px 0;font-style:italic;}
+/* AI 응답 액션 바 */
+.agent-msg-actions{display:flex;gap:4px;margin-top:6px;padding-top:5px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.agent-action-btn{padding:3px 8px;border:0.5px solid var(--border-dark);border-radius:4px;font-size:10px;cursor:pointer;background:var(--white);color:var(--text-secondary);transition:all .15s;display:inline-flex;align-items:center;gap:3px;}
+.agent-action-btn:hover{background:var(--navy);color:var(--white);border-color:var(--navy);}
+.agent-action-btn.done{background:var(--s-done-bg);color:var(--s-done);border-color:var(--s-done);pointer-events:none;}
 .agent-input-row{display:flex;gap:6px;align-items:flex-end;}
 .agent-input-row textarea{flex:1;padding:8px 10px;border:1px solid var(--border-dark);border-radius:var(--radius-sm);font-size:13px;resize:none;height:58px;outline:none;font-family:inherit;}
 .agent-input-row textarea:focus{border-color:var(--navy);}
@@ -576,6 +630,9 @@ tbody td{padding:13px 14px;font-size:13.5px;}
 .cost-type{font-size:11px;color:var(--text-muted);min-width:60px;}
 .cost-amount{font-size:13px;font-weight:600;color:var(--text-primary);flex:1;}
 .cost-date{font-size:11px;color:var(--text-muted);}
+.cost-edit-btn{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:12px;padding:0 2px;opacity:0;transition:opacity .15s;}
+.cost-item:hover .cost-edit-btn{opacity:1;}
+.cost-edit-btn:hover{color:var(--text-primary);}
 .cost-del{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:13px;}
 .cost-del:hover{color:var(--s-new);}
 .cost-total{font-family:Georgia,serif;font-size:13px;font-weight:600;color:var(--navy);}
@@ -830,6 +887,46 @@ tbody td{padding:13px 14px;font-size:13.5px;}
 .mobile-tab-item.active{color:var(--navy);}
 .mobile-tab-icon{font-size:20px;line-height:1;}
 .mobile-tab-label{font-size:10px;font-weight:500;letter-spacing:-.02em;}
+
+/* ===== Feature 5: 연관 사건 자동 추천 ===== */
+.auto-related-section{background:#eff6ff;border-radius:var(--radius-sm);padding:10px;margin-top:8px;}
+.auto-related-title{font-size:11px;font-weight:600;color:var(--navy-accent);margin-bottom:6px;}
+.auto-related-item{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #dbeafe;font-size:12px;}
+.auto-related-item:last-child{border-bottom:none;}
+.auto-related-reason{display:inline-flex;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:500;background:#dbeafe;color:#1d4ed8;}
+.auto-related-link-btn{background:var(--navy-accent);color:#fff;border:none;padding:2px 8px;border-radius:3px;font-size:10px;cursor:pointer;margin-left:auto;flex-shrink:0;}
+.auto-related-link-btn:hover{background:var(--navy);}
+
+/* ===== Feature 8: 커뮤니케이션 로그 ===== */
+.comm-type{display:inline-flex;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:500;}
+.comm-type-report{background:#eff6ff;color:#2563eb;}
+.comm-type-negotiation{background:#fef2f2;color:#dc2626;}
+.comm-type-court{background:#f5f3ff;color:#7c3aed;}
+.comm-type-internal{background:#f0fdf4;color:#16a34a;}
+.comm-type-other{background:#f8fafc;color:#64748b;}
+.comm-item{padding:8px 0;border-bottom:1px solid var(--border);}
+.comm-item:last-child{border-bottom:none;}
+.comm-meta{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);margin-bottom:3px;}
+.comm-counterpart{font-size:11px;font-weight:500;color:var(--text-secondary);}
+.comm-content{font-size:12px;color:var(--text-primary);line-height:1.5;margin-top:2px;}
+.comm-actions{margin-left:auto;display:none;gap:4px;}
+.comm-item:hover .comm-actions{display:flex;}
+.comm-action-btn{background:none;border:none;cursor:pointer;font-size:11px;color:var(--text-muted);padding:0 2px;}
+.comm-action-btn:hover{color:var(--text-primary);}
+.comm-del:hover{color:var(--s-new);}
+
+/* ===== Feature 12: 기일 알림 다층화 ===== */
+.notif-critical{border-left:3px solid #dc2626;}
+.notif-urgent{border-left:3px solid #dc2626;}
+.notif-warning{border-left:3px solid #d97706;}
+.notif-info{border-left:3px solid #2563eb;}
+.notif-today{border-left:3px solid #7c3aed;}
+.notif-level-badge{display:inline-flex;padding:1px 4px;border-radius:2px;font-size:9px;font-weight:600;margin-right:4px;}
+.notif-level-critical{background:#fef2f2;color:#dc2626;}
+.notif-level-urgent{background:#fef2f2;color:#dc2626;}
+.notif-level-warning{background:#fffbeb;color:#d97706;}
+.notif-level-info{background:#eff6ff;color:#2563eb;}
+.notif-level-today{background:#f5f3ff;color:#7c3aed;}
 
 </style>
 <!-- ⑤ Chart.js CDN - 보고서 차트용 -->
@@ -1094,6 +1191,7 @@ tbody td{padding:13px 14px;font-size:13.5px;}
           <button class="btn btn-outline btn-sm" onclick="exportReportCSV()">CSV 내보내기</button>
           <button class="btn btn-outline btn-sm" onclick="generateReportDraft()">✨ AI 초안</button>
           <button class="btn btn-outline btn-sm" onclick="exportPPT()">PPT 내보내기</button>
+          <button class="btn btn-gold btn-sm" onclick="generateExecReport()">경영진 보고서</button>
           <button class="btn btn-primary btn-sm" onclick="window.print()">인쇄 / PDF 저장</button>
         </div>
         <div class="report-body" id="reportBody"></div>
@@ -1184,6 +1282,7 @@ tbody td{padding:13px 14px;font-size:13.5px;}
           <div>
             <div class="dp-card" id="dp-costs-card"></div>
             <div class="dp-card" id="dp-memos-card"></div>
+            <div class="dp-card" id="dp-comms-card"></div>
           </div>
         </div>
       </div>
@@ -1210,10 +1309,14 @@ tbody td{padding:13px 14px;font-size:13.5px;}
       <div class="form-tabs">
         <div class="form-tab active" onclick="switchRegTab('manual',this)">수동 등록</div>
         <div class="form-tab" onclick="switchRegTab('email',this)">이메일 불러오기</div>
+        <div class="form-tab" onclick="switchRegTab('file',this)">파일로 등록</div>
+      </div>
+      <div id="reg-template-bar" style="display:flex;gap:6px;padding:8px 0;flex-wrap:wrap;border-bottom:1px solid var(--border);margin-bottom:10px">
+        <span style="font-size:11px;color:var(--text-muted);align-self:center">템플릿:</span>
       </div>
       <!-- 수동 등록 -->
       <div class="form-section active" id="reg-manual">
-        <!-- 섹션1: 기본 정보 -->
+        <!-- ① 기본 정보 -->
         <div class="form-section-header">기본 정보</div>
         <div class="form-group">
           <label>사건명 <span class="req">*</span></label>
@@ -1226,6 +1329,10 @@ tbody td{padding:13px 14px;font-size:13.5px;}
           </div>
           <input type="text" id="m-name" placeholder="사건명을 입력하세요" oninput="updateNamePreview()">
           <div class="name-preview" id="m-namePreview"></div>
+        </div>
+        <div class="form-group">
+          <label>사건 요약</label>
+          <textarea id="m-summary" placeholder="분쟁 경위, 쟁점, 의뢰 목적 등을 간략히 기재하세요.&#10;예: ABC사와의 공급계약 해지 관련 손해배상 청구 대응 필요. 계약서 검토 및 내용증명 발송 요청."></textarea>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -1241,7 +1348,12 @@ tbody td{padding:13px 14px;font-size:13.5px;}
             <div class="case-num-preview" id="caseNumPreview"></div>
           </div>
         </div>
-        <!-- 섹션2: 담당 및 접수 -->
+        <div class="form-group">
+          <label>태그</label>
+          <input type="text" class="reg-tags-input" id="m-tags" placeholder="쉼표로 구분 (예: 공급계약, 손해배상, ABC사)">
+          <div class="reg-tags-hint">쉼표(,)로 구분하여 입력</div>
+        </div>
+        <!-- ② 담당 및 접수 -->
         <div class="form-section-header">담당 및 접수</div>
         <div class="form-row">
           <div class="form-group">
@@ -1253,7 +1365,19 @@ tbody td{padding:13px 14px;font-size:13.5px;}
             <input type="text" id="m-dept" placeholder="예: 구매팀, 전략기획팀">
           </div>
         </div>
-        <!-- 대외비 설정 -->
+        <!-- ③ 관계자 -->
+        <div class="reg-quick-section">
+          <div class="reg-quick-header"><span>관계자 추가 (선택)</span><span id="m-pt-count" style="font-size:11px;color:var(--text-muted)">0/5</span></div>
+          <div id="m-parties-list"></div>
+          <button type="button" class="reg-add-btn" onclick="addRegParty('m')">＋ 관계자 추가</button>
+        </div>
+        <!-- ④ 기일 -->
+        <div class="reg-quick-section">
+          <div class="reg-quick-header"><span>기일 추가 (선택)</span><span id="m-dl-count" style="font-size:11px;color:var(--text-muted)">0/5</span></div>
+          <div id="m-deadlines-list"></div>
+          <button type="button" class="reg-add-btn" onclick="addRegDeadline('m')">＋ 기일 추가</button>
+        </div>
+        <!-- ⑤ 대외비 설정 -->
         <div class="conf-toggle-row">
           <label class="toggle-switch">
             <input type="checkbox" id="m-confidential" onchange="toggleConfAllowed('m')">
@@ -1266,36 +1390,90 @@ tbody td{padding:13px 14px;font-size:13.5px;}
           <input class="conf-allowed-input" id="m-allowedUsers" placeholder="접근 허용 사용자 (쉼표 구분, 예: 김팀장, 이임원)">
           <div style="font-size:11px;color:var(--text-muted);margin-top:4px">담당 변호사는 자동 포함 · 팀장·임원은 항상 열람 가능</div>
         </div>
-        <!-- 섹션3: 사건 내용 -->
-        <div class="form-section-header">사건 내용</div>
-        <div class="form-group">
-          <label>사건 요약</label>
-          <textarea id="m-summary" placeholder="분쟁 경위, 쟁점, 의뢰 목적 등을 간략히 기재하세요.&#10;예: ABC사와의 공급계약 해지 관련 손해배상 청구 대응 필요. 계약서 검토 및 내용증명 발송 요청."></textarea>
-        </div>
       </div>
       <!-- F3 이메일 불러오기 -->
       <div class="form-section" id="reg-email">
-        <div class="form-section-header">이메일 원문 가져오기</div>
-        <div class="form-group">
-          <label>이메일 원문 붙여넣기</label>
-          <textarea id="e-raw" style="min-height:110px;font-family:monospace;font-size:12px" placeholder="이메일 원문을 붙여넣으세요.&#10;From: sender@company.com&#10;Subject: 계약 검토 요청&#10;Date: Mon, 15 Mar 2026 09:30:00 +0900"></textarea>
-          <div style="display:flex;gap:8px;margin-top:6px">
-            <button class="btn btn-outline btn-sm" onclick="parseEmail()">파싱하기</button>
-            <label class="btn btn-outline btn-sm" style="cursor:pointer">.eml 업로드<input type="file" accept=".eml,.txt" style="display:none" onchange="loadEml(event)"></label>
+        <!-- 이메일 원문 영역 -->
+        <div class="reg-quick-section" style="background:var(--bg-main);border-style:dashed">
+          <div class="form-section-header" style="margin-top:0;padding-top:0">이메일 원문 가져오기</div>
+          <div class="form-group" style="margin-bottom:0">
+            <textarea id="e-raw" style="min-height:100px;font-family:monospace;font-size:12px" placeholder="이메일 원문을 붙여넣으세요.&#10;From: sender@company.com&#10;Subject: 계약 검토 요청&#10;Date: Mon, 15 Mar 2026 09:30:00 +0900"></textarea>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <button class="btn btn-outline btn-sm" onclick="parseEmail()">파싱하기</button>
+              <label class="btn btn-outline btn-sm" style="cursor:pointer">.eml 업로드<input type="file" accept=".eml,.txt" style="display:none" onchange="loadEml(event)"></label>
+            </div>
           </div>
         </div>
-        <div class="form-section-header">파싱 결과 확인</div>
-        <div class="form-row">
-          <div class="form-group"><label>발신자 <span class="req">*</span></label><input type="text" id="e-from" placeholder="파싱 후 자동 입력됩니다"></div>
-          <div class="form-group"><label>수신일 <span class="req">*</span></label><input type="date" id="e-date"></div>
+        <!-- ① 기본 정보 (수동 탭과 동일 순서) -->
+        <div class="form-section-header">기본 정보</div>
+        <div class="form-group">
+          <label>사건명 <span class="req">*</span></label>
+          <input type="text" id="e-subject" placeholder="파싱 후 자동 입력됩니다 (이메일 제목)">
         </div>
-        <div class="form-group"><label>이메일 제목 → 사건명 <span class="req">*</span></label><input type="text" id="e-subject" placeholder="파싱 후 자동 입력됩니다"></div>
-        <div class="form-section-header">분류 및 담당</div>
-        <div class="form-row">
-          <div class="form-group"><label>사건 분류 <span class="req">*</span></label><select id="e-cat"><option value="LIT">소송·중재</option><option value="ADV">일반 자문</option><option value="INT">내부 자문</option><option value="REG">규제·행정</option><option value="ETC">기타</option></select></div>
-          <div class="form-group"><label>담당 변호사</label><input type="text" id="e-lawyer" placeholder="예: 홍길동 변호사"></div>
+        <div class="form-group">
+          <label>사건 요약</label>
+          <textarea id="e-summary" placeholder="이메일 주요 내용 및 요청사항을 요약하세요."></textarea>
         </div>
-        <div class="form-group"><label>내용 요약</label><textarea id="e-summary" placeholder="이메일 주요 내용 및 요청사항을 요약하세요."></textarea></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>사건 분류 <span class="req">*</span></label>
+            <select id="e-cat"><option value="LIT">소송·중재</option><option value="ADV">일반 자문</option><option value="INT">내부 자문</option><option value="REG">규제·행정</option><option value="ETC">기타</option></select>
+          </div>
+          <div class="form-group">
+            <label>수신일 <span class="req">*</span></label>
+            <input type="date" id="e-date">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>태그</label>
+          <input type="text" class="reg-tags-input" id="e-tags" placeholder="쉼표로 구분 (예: 계약검토, 긴급)">
+          <div class="reg-tags-hint">쉼표(,)로 구분하여 입력</div>
+        </div>
+        <!-- ② 담당 및 접수 (수동 탭과 동일 순서) -->
+        <div class="form-section-header">담당 및 접수</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>담당 변호사</label>
+            <input type="text" id="e-lawyer" placeholder="예: 홍길동 변호사">
+          </div>
+          <div class="form-group">
+            <label>발신자 (의뢰부서)</label>
+            <input type="text" id="e-from" placeholder="파싱 후 자동 입력됩니다">
+          </div>
+        </div>
+        <!-- ③ 관계자 -->
+        <div class="reg-quick-section">
+          <div class="reg-quick-header"><span>관계자 추가 (선택)</span><span id="e-pt-count" style="font-size:11px;color:var(--text-muted)">0/5</span></div>
+          <div id="e-parties-list"></div>
+          <button type="button" class="reg-add-btn" onclick="addRegParty('e')">＋ 관계자 추가</button>
+        </div>
+        <!-- ④ 기일 -->
+        <div class="reg-quick-section">
+          <div class="reg-quick-header"><span>기일 추가 (선택)</span><span id="e-dl-count" style="font-size:11px;color:var(--text-muted)">0/5</span></div>
+          <div id="e-deadlines-list"></div>
+          <button type="button" class="reg-add-btn" onclick="addRegDeadline('e')">＋ 기일 추가</button>
+        </div>
+      </div>
+      <!-- 파일로 등록 -->
+      <div class="form-section" id="reg-file">
+        <div class="reg-quick-section" style="background:var(--bg-main);border-style:dashed;padding:0;border:none;">
+          <div class="form-section-header" style="margin-top:0;padding-top:0">법률 문서 업로드</div>
+          <div id="file-drop-zone" onclick="document.getElementById('reg-file-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="event.preventDefault();this.classList.remove('dragover');handleRegFileDrop(event)">
+            <div class="drop-icon">📄</div>
+            <div class="drop-text">파일을 드래그하거나 클릭하여 업로드</div>
+            <div class="drop-hint">PDF, DOCX, TXT 지원 · 소장, 답변서, 계약서 등</div>
+            <input type="file" id="reg-file-input" accept=".pdf,.docx,.txt" style="display:none" onchange="handleRegFile(event)">
+          </div>
+          <div id="reg-file-info" style="display:none"></div>
+          <div id="reg-file-preview-wrap" style="display:none">
+            <details class="reg-file-preview">
+              <summary>추출 텍스트 미리보기</summary>
+              <pre id="reg-file-preview-text"></pre>
+            </details>
+          </div>
+        </div>
+        <button class="btn btn-gold" style="width:100%;margin-top:12px" onclick="parseFileAI()" id="reg-file-ai-btn" disabled>✨ AI로 분석하여 자동 입력</button>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;text-align:center">AI가 문서를 분석하여 수동 등록 폼에 자동 입력합니다</div>
       </div>
     </div>
     <div class="modal-footer"><button class="btn btn-outline" onclick="closeReg()">취소</button><button class="btn btn-primary" onclick="submitCase()">사건 등록</button></div>
@@ -1421,9 +1599,30 @@ const AUTOBACKUP_INTERVAL = 5 * 60 * 1000; // 5분
 const AUTOBACKUP_MAX_SLOTS = 3;
 const ROLE_LABEL = {lawyer:'매니저',manager:'팀장',executive:'임원'};
 
+const CASE_TEMPLATES = [
+  {name:'공급계약 분쟁',category:'LIT',tags:['공급계약','손해배상'],
+   parties:[{type:'상대방',company:'',contact:''}],
+   deadlines:[{name:'답변서 제출기한',date:''}]},
+  {name:'근로계약 분쟁',category:'LIT',tags:['근로계약','부당해고'],
+   parties:[{type:'상대방',company:'',contact:''},{type:'대리인',company:'',contact:''}],
+   deadlines:[]},
+  {name:'계약서 검토 자문',category:'ADV',tags:['계약검토'],
+   parties:[{type:'의뢰부서',company:'',contact:''}],
+   deadlines:[{name:'검토 완료 기한',date:''}]},
+  {name:'규제 대응',category:'REG',tags:['규제','행정'],
+   parties:[{type:'상대방',company:'',contact:''}],
+   deadlines:[{name:'의견서 제출기한',date:''}]},
+  {name:'내부 컴플라이언스 자문',category:'INT',tags:['컴플라이언스','내부조사'],
+   parties:[{type:'의뢰부서',company:'',contact:''}],
+   deadlines:[]},
+  {name:'지식재산권 분쟁',category:'LIT',tags:['특허','지식재산'],
+   parties:[{type:'상대방',company:'',contact:''}],
+   deadlines:[{name:'답변서 제출기한',date:''}]},
+];
+
 /* ===== P0-2: API Key 난독화 ===== */
-function obfuscateKey(plain){return btoa(plain.split('').reverse().join(''));}
-function deobfuscateKey(encoded){try{return atob(encoded).split('').reverse().join('');}catch{return encoded;}}
+function obfuscateKey(plain){try{return btoa(plain.split('').reverse().join(''));}catch{return plain;}}
+function deobfuscateKey(encoded){try{const decoded=atob(encoded).split('').reverse().join('');return decoded.startsWith('sk-')?decoded:encoded;}catch{return encoded;}}
 
 /* ===== P0-1: 로컬 메타데이터 (충돌 감지용) ===== */
 function getLocalMeta(){try{return JSON.parse(localStorage.getItem(LS_META))||{updatedAt:new Date(0).toISOString(),version:0};}catch{return{updatedAt:new Date(0).toISOString(),version:0};}}
@@ -1540,6 +1739,16 @@ let agentHistory=[]; // [{role,content}] - 대화 히스토리
 document.addEventListener('DOMContentLoaded',()=>{
   // 1) localStorage에서 즉시 로드 (빠른 초기 렌더)
   try{cases=JSON.parse(localStorage.getItem(LS)||'[]');}catch{cases=[];}
+  // 데이터 마이그레이션: 필드명 정규화 (dl.label→dl.name, p.role→p.type, p.name→p.company)
+  let _migrated=false;
+  cases.forEach(c=>{
+    (c.deadlines||[]).forEach(dl=>{if(dl.label&&!dl.name){dl.name=dl.label;delete dl.label;_migrated=true;}});
+    (c.parties||[]).forEach(p=>{
+      if(p.role&&!p.type){p.type=p.role;delete p.role;_migrated=true;}
+      if(p.name&&!p.company){p.company=p.name;delete p.name;_migrated=true;}
+    });
+  });
+  if(_migrated)localStorage.setItem(LS,JSON.stringify(cases));
   // N8: 초기 스토리지 정보 업데이트
   setTimeout(updateStorageInfo, 500);
   // Q1: 사이드바 초기 상태 복원
@@ -1615,7 +1824,8 @@ save._timer=null;
 /* ===== P1-3: AI API 공통 호출 ===== */
 const AI_CONFIG = {
   API_KEY: '',
-  MODEL: 'claude-sonnet-4-5',
+  MODEL: 'claude-sonnet-4-5-20241022',
+  FALLBACK_MODELS: ['claude-sonnet-4-5-20241022','claude-3-5-sonnet-20241022','claude-sonnet-4-6'],
   init(){
     const saved=localStorage.getItem('anthropic_api_key');
     if(saved) this.API_KEY=deobfuscateKey(saved);
@@ -1634,24 +1844,42 @@ async function callAI({system,messages,max_tokens=600,model}){
   if(!AI_CONFIG.API_KEY){
     throw new Error('AI API Key가 설정되지 않았습니다. 사이드바 설정에서 입력하세요.');
   }
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key':AI_CONFIG.API_KEY,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body:JSON.stringify({
-      model:model||AI_CONFIG.MODEL,
-      max_tokens,
-      ...(system?{system}:{}),
-      messages
-    })
-  });
-  const data=await res.json();
-  if(data.error) throw new Error(data.error.message);
-  return data.content?.[0]?.text||'';
+  const modelsToTry=model?[model]:[AI_CONFIG.MODEL,...AI_CONFIG.FALLBACK_MODELS.filter(m=>m!==AI_CONFIG.MODEL)];
+  let lastErr=null;
+  for(const mdl of modelsToTry){
+    try{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'x-api-key':AI_CONFIG.API_KEY,
+          'anthropic-version':'2023-06-01',
+          'anthropic-dangerous-direct-browser-access':'true'
+        },
+        body:JSON.stringify({
+          model:mdl,
+          max_tokens,
+          ...(system?{system}:{}),
+          messages
+        })
+      });
+      const data=await res.json();
+      if(data.error){
+        // 인증 오류는 모델 변경으로 해결 불가 → 즉시 중단
+        if(data.error.type==='authentication_error')throw new Error('API Key가 유효하지 않습니다. 사이드바 설정에서 키를 확인하세요.');
+        // 모델 관련 오류면 다음 모델 시도
+        if(data.error.type==='invalid_request_error'&&modelsToTry.length>1){lastErr=data.error.message;continue;}
+        throw new Error(data.error.message);
+      }
+      // 성공 시 작동한 모델 기억
+      if(mdl!==AI_CONFIG.MODEL){console.log('[AI] 모델 전환:',AI_CONFIG.MODEL,'→',mdl);AI_CONFIG.MODEL=mdl;}
+      return data.content?.[0]?.text||'';
+    }catch(e){
+      if(e.message.includes('API Key'))throw e;
+      lastErr=e.message;
+    }
+  }
+  throw new Error(lastErr||'AI 호출 실패 — 모든 모델 시도 실패');
 }
 
 /* ===== P1-4: 오프라인→온라인 동기화 큐 ===== */
@@ -1698,6 +1926,24 @@ function dday(ds){
 }
 function fmtDday(d){if(d<0)return`D+${Math.abs(d)}`;if(d===0)return'D-DAY';return`D-${d}`;}
 function ym(){const n=new Date();return`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;}
+
+/* ===== 소송 기일 프리셋 및 자동 연산 ===== */
+const LIT_DEADLINE_PRESETS = [
+  '변론기일','변론준비기일','답변서 제출기한',
+  '준비서면 제출기한','판결선고일','항소기한',
+  '상고기한','감정서 제출기한','증거신청 기한','소장 송달일'
+];
+const DEADLINE_AUTO_RULES = [
+  {trigger:'판결선고일', generates:[{name:'항소기한', offset:14}]},
+  {trigger:'소장 송달일', generates:[{name:'답변서 제출기한', offset:30}]},
+  {trigger:'변론기일', generates:[{name:'준비서면 제출기한', offset:-7}]},
+];
+function calcOffsetDate(baseDate, offsetDays){
+  const [y,m,d]=baseDate.split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  dt.setDate(dt.getDate()+offsetDays);
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+}
 
 /* ===== P0-1: 데이터 충돌 해결 ===== */
 let _pendingCloudCases=null;
@@ -1934,24 +2180,65 @@ function renderSummary(){
 /* ===== F4 D-day 패널 ===== */
 function renderDday(){
   const panel=document.getElementById('ddayPanel'),list=document.getElementById('ddayList');
-  const items=[];
+  // D-14 범위 (더보기로 D-30)
+  const allItems=[];
   cases.filter(c=>c.status!=='done'&&canAccess(c)).forEach(c=>{
     (c.deadlines||[]).forEach(dl=>{
       const d=dday(dl.date);
-      if(d>=0&&d<=7)items.push({caseNum:c.caseNum,name:c.name,id:c.id,dlName:dl.name,dlDate:dl.date,d});
+      if(d>=0&&d<=30)allItems.push({caseNum:c.caseNum,name:c.name,id:c.id,dlName:dl.name,dlDate:dl.date,d});
     });
   });
-  items.sort((a,b)=>a.d-b.d);
-  if(!items.length){
+  allItems.sort((a,b)=>a.d-b.d);
+  const items14=allItems.filter(i=>i.d<=14);
+  const items30=allItems.filter(i=>i.d>14);
+  // 헤더 건수 표시
+  const headerEl=panel.querySelector('.dday-panel-header-count');
+  if(!headerEl){
+    const hdr=panel.querySelector('.dday-panel-header,h3,[class*=header]');
+    if(hdr&&!hdr.querySelector('.dday-count-badge')){
+      const badge=document.createElement('span');badge.className='dday-count-badge';badge.style.cssText='font-size:11px;color:var(--gold);font-weight:500;margin-left:6px;';
+      hdr.appendChild(badge);
+    }
+  }
+  const countBadge=panel.querySelector('.dday-count-badge');
+  if(countBadge)countBadge.textContent=allItems.length?`(${allItems.length}건)`:'';
+
+  if(!allItems.length){
     panel.style.display='block';
-    list.innerHTML='<div class="empty-state" style="padding:20px;text-align:center"><span style="font-size:26px;opacity:.2;display:block;margin-bottom:8px">📅</span><div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:4px">임박한 기일 없음</div><div style="font-size:12px;color:var(--text-muted)">D-7 이내 기일이 등록되면 여기에 표시됩니다.</div></div>';
+    list.innerHTML='<div class="empty-state" style="padding:20px;text-align:center"><span style="font-size:26px;opacity:.2;display:block;margin-bottom:8px">📅</span><div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:4px">임박한 기일 없음</div><div style="font-size:12px;color:var(--text-muted)">D-14 이내 기일이 등록되면 여기에 표시됩니다.</div></div>';
     return;
   }
   panel.style.display='block';
-  list.innerHTML=items.map(i=>{
-    const cls=i.d<=3?'dd-red':i.d<=5?'dd-orange':'dd-blue';
-    return`<div class="dday-item" onclick="openDetail('${i.id}')"><span class="dday-badge ${cls}">${fmtDday(i.d)}</span><span class="dday-case">${esc(i.caseNum)} · ${esc(i.name)}</span><span class="dday-dlname">${esc(i.dlName)} (${i.dlDate})</span></div>`;
-  }).join('');
+  // 동일 사건 그룹핑
+  const renderGroup=(items)=>{
+    const grouped=new Map();
+    items.forEach(i=>{
+      if(!grouped.has(i.id))grouped.set(i.id,{caseNum:i.caseNum,name:i.name,id:i.id,dls:[]});
+      grouped.get(i.id).dls.push(i);
+    });
+    let html='';
+    grouped.forEach(g=>{
+      if(g.dls.length===1){
+        const i=g.dls[0];
+        const cls=i.d<=3?'dd-red':i.d<=7?'dd-orange':'dd-blue';
+        html+=`<div class="dday-item" onclick="openDetail('${i.id}')"><span class="dday-badge ${cls}">${fmtDday(i.d)}</span><span class="dday-case">${esc(i.caseNum)} · ${esc(i.name)}</span><span class="dday-dlname">${esc(i.dlName)} (${i.dlDate})</span></div>`;
+      }else{
+        html+=`<div class="dday-group" onclick="openDetail('${g.id}')" style="cursor:pointer;margin-bottom:4px;padding:6px 8px;background:var(--bg);border-radius:6px;">
+          <div style="font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:4px">${esc(g.caseNum)} · ${esc(g.name)}</div>`;
+        g.dls.forEach(i=>{
+          const cls=i.d<=3?'dd-red':i.d<=7?'dd-orange':'dd-blue';
+          html+=`<div class="dday-item" style="padding:2px 0"><span class="dday-badge ${cls}" style="font-size:10px">${fmtDday(i.d)}</span><span class="dday-dlname">${esc(i.dlName)} (${i.dlDate})</span></div>`;
+        });
+        html+=`</div>`;
+      }
+    });
+    return html;
+  };
+  let html=renderGroup(items14);
+  if(items30.length){
+    html+=`<details style="margin-top:6px"><summary style="font-size:11px;color:var(--text-muted);cursor:pointer;padding:4px 0">D-15 ~ D-30 기일 ${items30.length}건 더보기</summary>${renderGroup(items30)}</details>`;
+  }
+  list.innerHTML=html;
 }
 
 /* ===== F1 탭 카운트 (접근 가능한 사건 기준) ===== */
@@ -2024,16 +2311,25 @@ function renderLawyers(){
   const lawyers=[...new Set(cases.filter(c=>c.lawyer&&c.status!=='done').map(c=>c.lawyer))];
   if(!lawyers.length){grid.innerHTML='<div style="font-size:13px;color:var(--text-muted)">담당자 정보가 없습니다.</div>';return;}
   const curYm=ym();
+  const now=new Date();const weekLater=new Date(now.getTime()+7*24*60*60*1000);
   grid.innerHTML=lawyers.map(l=>{
     const active=cases.filter(c=>c.lawyer===l&&c.status!=='done');
     // B3 fix: 종결 카운트를 접수일(c.date)이 아닌 종결일(c.closedAt) 기준으로 집계
     const done=cases.filter(c=>c.lawyer===l&&c.status==='done'&&(c.closedAt||c.date||'').startsWith(curYm));
+    const allDone=cases.filter(c=>c.lawyer===l&&c.status==='done').length;
+    const totalAll=allDone+active.length;
+    const resolveRate=totalAll>0?Math.round(allDone/totalAll*100):0;
+    // 이번 주 기일 수
+    let weekDeadlines=0;
+    active.forEach(c=>{(c.deadlines||[]).forEach(dl=>{const dd=new Date(dl.date);if(dd>=now&&dd<=weekLater)weekDeadlines++;});});
     const catCnts={};active.forEach(c=>{catCnts[c.category]=(catCnts[c.category]||0)+1;});
     const tags=Object.entries(catCnts).map(([cat,n])=>`<span class="tag tag-${cat}" style="font-size:10px">${CAT[cat]} ${n}</span>`).join('');
+    // 부하 표시
+    const loadBadge=active.length>5?'<span style="background:#fee2e2;color:#dc2626;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px">과부하</span>':active.length>3?'<span style="background:#fff7ed;color:#ea580c;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px">주의</span>':'';
     // onclick에서 따옴표 충돌 방지: data-lawyer 속성 + 이벤트 위임 대신 인코딩 방식 사용
     const safeL=encodeURIComponent(l);
     return`<div class="lawyer-card" style="cursor:pointer" onclick="filterByLawyer(decodeURIComponent('${safeL}'))" title="${esc(l)} 담당 사건 보기">
-      <div class="lawyer-name">${esc(l)}</div><div class="lawyer-nums"><div><div class="ln-val">${active.length}</div><div class="ln-label">진행 중</div></div><div><div class="ln-val">${done.length}</div><div class="ln-label">이번 달 완료</div></div></div><div class="lawyer-cats">${tags||'<span style="font-size:11px;color:var(--text-muted)">없음</span>'}</div></div>`;
+      <div class="lawyer-name">${esc(l)} ${loadBadge}</div><div class="lawyer-nums"><div><div class="ln-val">${active.length}</div><div class="ln-label">진행 중</div></div><div><div class="ln-val">${done.length}</div><div class="ln-label">이번 달 완료</div></div></div><div style="display:flex;gap:8px;font-size:11px;color:var(--text-secondary);margin:4px 0"><span>📅 이번 주 기일: <b>${weekDeadlines}</b></span><span>✅ 해결율: <b>${resolveRate}%</b></span></div><div class="lawyer-cats">${tags||'<span style="font-size:11px;color:var(--text-muted)">없음</span>'}</div></div>`;
   }).join('');
 }
 
@@ -2247,6 +2543,40 @@ function renderReport(){
       </table>
     </div>
     ${renderDeptSection(mc,ymStr)}
+    <div class="report-section"><h3>분야별 KPI</h3>
+      <table class="report-table">
+        <thead><tr><th>분야</th><th style="text-align:center">전체</th><th style="text-align:center">완료</th><th style="text-align:center">해결율</th><th style="text-align:center">평균 처리일</th><th style="text-align:right">비용 합계</th></tr></thead>
+        <tbody>${Object.entries(CAT).map(([cat,label])=>{
+          const catCases=cases.filter(c=>c.category===cat);
+          const catTotal=catCases.length;
+          const catDone=catCases.filter(c=>c.status==='done').length;
+          const catRate=catTotal>0?Math.round(catDone/catTotal*100):0;
+          const doneCasesWithDates=catCases.filter(c=>c.status==='done'&&c.closedAt&&c.date);
+          const avgDays=doneCasesWithDates.length>0?Math.round(doneCasesWithDates.reduce((s,c)=>{const d1=new Date(c.date),d2=new Date(c.closedAt);return s+Math.max(0,Math.round((d2-d1)/(1000*60*60*24)));},0)/doneCasesWithDates.length):'-';
+          const catCost=catCases.reduce((s,c)=>(c.costs||[]).reduce((ss,ct)=>ss+parseInt(ct.amount||0),s),0);
+          return '<tr><td>'+label+'</td><td style="text-align:center">'+catTotal+'</td><td style="text-align:center">'+catDone+'</td><td style="text-align:center">'+catRate+'%</td><td style="text-align:center">'+(avgDays==='-'?'-':avgDays+'일')+'</td><td style="text-align:right">'+catCost.toLocaleString('ko-KR')+'원</td></tr>';
+        }).join('')}</tbody>
+      </table>
+    </div>
+    <div class="report-section"><h3>담당자별 KPI</h3>
+      <table class="report-table">
+        <thead><tr><th>담당자</th><th style="text-align:center">전체</th><th style="text-align:center">완료</th><th style="text-align:center">해결율</th><th style="text-align:center">평균 처리일</th><th style="text-align:right">비용 합계</th></tr></thead>
+        <tbody>${(()=>{
+          const allLawyers=[...new Set(cases.map(c=>c.lawyer).filter(Boolean))];
+          if(!allLawyers.length)return'<tr><td colspan="6" style="text-align:center;color:#999">담당자 정보 없음</td></tr>';
+          return allLawyers.map(l=>{
+            const lCases=cases.filter(c=>c.lawyer===l);
+            const lTotal=lCases.length;
+            const lDone=lCases.filter(c=>c.status==='done').length;
+            const lRate=lTotal>0?Math.round(lDone/lTotal*100):0;
+            const lDoneDates=lCases.filter(c=>c.status==='done'&&c.closedAt&&c.date);
+            const lAvg=lDoneDates.length>0?Math.round(lDoneDates.reduce((s,c)=>{const d1=new Date(c.date),d2=new Date(c.closedAt);return s+Math.max(0,Math.round((d2-d1)/(1000*60*60*24)));},0)/lDoneDates.length):'-';
+            const lCost=lCases.reduce((s,c)=>(c.costs||[]).reduce((ss,ct)=>ss+parseInt(ct.amount||0),s),0);
+            return'<tr><td>'+esc(l)+'</td><td style="text-align:center">'+lTotal+'</td><td style="text-align:center">'+lDone+'</td><td style="text-align:center">'+lRate+'%</td><td style="text-align:center">'+(lAvg==='-'?'-':lAvg+'일')+'</td><td style="text-align:right">'+lCost.toLocaleString('ko-KR')+'원</td></tr>';
+          }).join('');
+        })()}</tbody>
+      </table>
+    </div>
     <div class="report-footer">${esc(org)} · ${year}년 ${month}월 기준</div>`;
 
   // ⑤ Chart.js 차트 렌더링
@@ -2272,7 +2602,28 @@ function renderReport(){
 }
 
 /* ===== 등록 모달 ===== */
-function openReg(){document.getElementById('regOverlay').classList.add('open');updateCaseNumPreview();}
+function openReg(){document.getElementById('regOverlay').classList.add('open');updateCaseNumPreview();renderTemplateButtons();}
+function renderTemplateButtons(){
+  const bar=document.getElementById('reg-template-bar');
+  if(bar)bar.innerHTML='<span style="font-size:11px;color:var(--text-muted);align-self:center">템플릿:</span>'+CASE_TEMPLATES.map((t,i)=>'<button class="btn btn-outline btn-sm" onclick="applyTemplate('+i+')">'+esc(t.name)+'</button>').join('');
+}
+function applyTemplate(idx){
+  const t=CASE_TEMPLATES[idx];if(!t)return;
+  // switch to manual tab
+  const manTab=document.querySelector('.form-tab');
+  if(manTab)switchRegTab('manual',manTab);
+  // fill name
+  const nameEl=document.getElementById('m-name');if(nameEl){nameEl.value=t.name;nameEl.classList.add('ai-highlight');}
+  // fill category
+  const catEl=document.getElementById('m-cat');if(catEl){catEl.value=t.category;catEl.classList.add('ai-highlight');updateCaseNumPreview();}
+  // fill tags
+  const tagsEl=document.getElementById('m-tags');if(tagsEl&&t.tags.length){tagsEl.value=t.tags.join(', ');tagsEl.classList.add('ai-highlight');}
+  // clear & fill parties
+  const ptList=document.getElementById('m-parties-list');if(ptList){ptList.innerHTML='';t.parties.forEach(p=>{addRegParty('m');const row=ptList.lastElementChild;if(row){const sel=row.querySelector('select');if(sel)sel.value=p.type;const inps=row.querySelectorAll('input');if(inps[0])inps[0].value=p.company;if(inps[1])inps[1].value=p.contact;row.classList.add('ai-highlight');}});}
+  // clear & fill deadlines
+  const dlList=document.getElementById('m-deadlines-list');if(dlList){dlList.innerHTML='';t.deadlines.forEach(d=>{addRegDeadline('m');const row=dlList.lastElementChild;if(row){const inps=row.querySelectorAll('input');if(inps[0])inps[0].value=d.name;if(inps[1])inps[1].value=d.date;row.classList.add('ai-highlight');}});}
+  showToast('템플릿 적용됨');
+}
 function closeRegOverlay(e){if(e.target===document.getElementById('regOverlay'))closeReg();}
 function closeReg(){document.getElementById('regOverlay').classList.remove('open');resetReg();_copiedData=null;}
 function resetReg(){
@@ -2291,10 +2642,21 @@ function resetReg(){
   if(confBadge)confBadge.style.display='none';
   const confInput=document.getElementById('m-allowedUsers');
   if(confInput)confInput.value='';
+  // 기일/관계자/태그 초기화
+  clearRegQuickFields('m');
+  clearRegQuickFields('e');
+  // 파일 탭 초기화
+  _regFileText='';_regFileSource=false;
+  const regFileInfo=document.getElementById('reg-file-info');if(regFileInfo)regFileInfo.style.display='none';
+  const regFilePrev=document.getElementById('reg-file-preview-wrap');if(regFilePrev)regFilePrev.style.display='none';
+  const regFileBtn=document.getElementById('reg-file-ai-btn');if(regFileBtn){regFileBtn.disabled=true;regFileBtn.textContent='✨ AI로 분석하여 자동 입력';}
+  const regFileInput=document.getElementById('reg-file-input');if(regFileInput)regFileInput.value='';
+  // AI 하이라이트 제거
+  document.querySelectorAll('.ai-highlight').forEach(el=>el.classList.remove('ai-highlight'));
   updateCaseNumPreview();
 }
 function switchRegTab(mode,el){
-  regMode=mode;
+  regMode=mode==='file'?'manual':mode; // file탭은 AI 분석 후 manual로 전환됨
   document.querySelectorAll('.form-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
   document.querySelectorAll('.form-section').forEach(s=>s.classList.remove('active'));document.getElementById(`reg-${mode}`).classList.add('active');
 }
@@ -2318,6 +2680,68 @@ function updateNamePreview(){
   const p=NAME_PATTERNS[pattern];
   if(!val){ document.getElementById('m-namePreview').textContent=p.hint?`권장 형식: ${p.hint}`:''; return; }
   document.getElementById('m-namePreview').textContent=`미리보기: ${val}`;
+}
+
+/* ===== 등록 모달: 기일/관계자 빠른 추가 ===== */
+function addRegDeadline(prefix){
+  const list=document.getElementById(prefix+'-deadlines-list');
+  if(list.children.length>=5)return;
+  const row=document.createElement('div');row.className='reg-deadline-row';
+  // LIT 카테고리일 때 프리셋 드롭다운 추가
+  const catEl=document.getElementById(prefix==='m'?'m-cat':'e-cat');
+  const isLIT=catEl&&catEl.value==='LIT';
+  const presetHtml=isLIT?'<select class="dl-preset-select" onchange="if(this.value){this.parentElement.querySelector(\'input[type=text]\').value=this.value;this.value=\'\'}"><option value="">프리셋</option>'+LIT_DEADLINE_PRESETS.map(p=>'<option value="'+p+'">'+p+'</option>').join('')+'</select>':'';
+  row.innerHTML=presetHtml+'<input type="text" placeholder="기일명 (예: 답변서 제출)"><input type="date"><button type="button" class="reg-remove-btn" onclick="removeRegRow(this,\''+prefix+'\',\'dl\')">&times;</button>';
+  list.appendChild(row);
+  updateRegCount(prefix,'dl');
+}
+function addRegParty(prefix){
+  const list=document.getElementById(prefix+'-parties-list');
+  if(list.children.length>=5)return;
+  const row=document.createElement('div');row.className='reg-party-row';
+  row.innerHTML='<select><option value="상대방">상대방</option><option value="대리인">대리인</option><option value="의뢰인">의뢰인</option><option value="의뢰부서">의뢰부서</option><option value="담당자">담당자</option><option value="기타">기타</option></select><input type="text" placeholder="이름·회사"><input type="text" placeholder="연락처 (이메일/전화)" style="max-width:160px"><button type="button" class="reg-remove-btn" onclick="removeRegRow(this,\''+prefix+'\',\'pt\')">&times;</button>';
+  list.appendChild(row);
+  updateRegCount(prefix,'pt');
+}
+function removeRegRow(btn,prefix,type){
+  btn.parentElement.remove();
+  updateRegCount(prefix,type);
+}
+function updateRegCount(prefix,type){
+  const list=document.getElementById(prefix+'-'+(type==='dl'?'deadlines':'parties')+'-list');
+  const counter=document.getElementById(prefix+'-'+type+'-count');
+  if(counter)counter.textContent=list.children.length+'/5';
+}
+function collectRegDeadlines(prefix){
+  const rows=document.getElementById(prefix+'-deadlines-list').children;
+  const result=[];
+  for(const row of rows){
+    const inputs=row.querySelectorAll('input');
+    const label=inputs[0].value.trim(),date=inputs[1].value;
+    if(label&&date)result.push({name:label,date});
+  }
+  return result;
+}
+function collectRegParties(prefix){
+  const rows=document.getElementById(prefix+'-parties-list').children;
+  const result=[];
+  for(const row of rows){
+    const sel=row.querySelector('select');
+    const inputs=row.querySelectorAll('input');
+    const role=sel.value,name=inputs[0].value.trim(),contact=inputs[1].value.trim();
+    if(name)result.push({type:role,company:name,contact});
+  }
+  return result;
+}
+function collectRegTags(prefix){
+  const val=document.getElementById(prefix+'-tags')?.value||'';
+  return val.split(',').map(s=>s.trim()).filter(Boolean);
+}
+function clearRegQuickFields(prefix){
+  document.getElementById(prefix+'-deadlines-list').innerHTML='';
+  document.getElementById(prefix+'-parties-list').innerHTML='';
+  const tags=document.getElementById(prefix+'-tags');if(tags)tags.value='';
+  updateRegCount(prefix,'dl');updateRegCount(prefix,'pt');
 }
 
 /* ===== F-C: 사건번호 미리보기 ===== */
@@ -2372,7 +2796,7 @@ function submitCase(){
   let name,cat,date,lawyer,dept,summary,source;
   if(regMode==='manual'){
     name=document.getElementById('m-name').value.trim();cat=document.getElementById('m-cat').value;date=document.getElementById('m-date').value;
-    lawyer=document.getElementById('m-lawyer').value.trim();dept=document.getElementById('m-dept').value.trim();summary=document.getElementById('m-summary').value.trim();source='manual';
+    lawyer=document.getElementById('m-lawyer').value.trim();dept=document.getElementById('m-dept').value.trim();summary=document.getElementById('m-summary').value.trim();source=_regFileSource?'file':'manual';
     if(!name){alert('사건명을 입력해주세요.');return;}if(!date){alert('접수일을 입력해주세요.');return;}
   }else{
     const from=document.getElementById('e-from').value.trim(),subj=document.getElementById('e-subject').value.trim();
@@ -2380,17 +2804,23 @@ function submitCase(){
     if(!from){alert('발신자를 입력해주세요.');return;}if(!subj){alert('이메일 제목을 입력해주세요.');return;}if(!date){alert('수신일을 입력해주세요.');return;}
     name=subj;dept=from;source='email';
   }
+  const prefix=regMode==='manual'?'m':'e';
+  const regDeadlines=collectRegDeadlines(prefix);
+  const regParties=collectRegParties(prefix);
+  const regTags=collectRegTags(prefix);
   const newCase={id:`c_${Date.now()}`,caseNum:genNum(cat,date),name,category:cat,status:'new',lawyer,dept,date,summary,source,
     confidential:regMode==='manual'?(document.getElementById('m-confidential')?.checked||false):false,
     allowedUsers:regMode==='manual'?(document.getElementById('m-allowedUsers')?.value||'').split(',').map(s=>s.trim()).filter(Boolean):[],
-    createdAt:Date.now(),memos:[],deadlines:[],files:[],history:[{status:'new',date:new Date().toLocaleString('ko-KR')}]};
-  // N2: 복사 데이터(관계자·태그) 적용
+    createdAt:Date.now(),memos:[],deadlines:regDeadlines,files:[],parties:regParties,tags:regTags,history:[{status:'new',date:new Date().toLocaleString('ko-KR')}]};
+  // N2: 복사 데이터(관계자·태그) 병합
   if(_copiedData){
-    newCase.parties=_copiedData.parties;
-    newCase.tags=_copiedData.tags;
+    if(_copiedData.parties&&_copiedData.parties.length)newCase.parties=[...newCase.parties,..._copiedData.parties];
+    if(_copiedData.tags&&_copiedData.tags.length)newCase.tags=[...new Set([...newCase.tags,..._copiedData.tags])];
+    if(_copiedData.deadlines&&_copiedData.deadlines.length)newCase.deadlines=[...newCase.deadlines,..._copiedData.deadlines];
     _copiedData=null;
   }
   cases.push(newCase);
+  _regFileSource=false;
   save();renderAll();closeReg();
   showToast(`${newCase.caseNum} 등록 완료`);
 }
@@ -2439,6 +2869,7 @@ function renderDetailPage(c){
   renderDpFiles(c);
   renderDpCosts(c);
   renderDpMemos(c);
+  renderDpComms(c);
   renderDpTimeline(c);
   // U1: 탭 첫 번째로 초기화 (setTimeout으로 DOM 렌더 이후 실행)
   setTimeout(()=>switchDetailTab('info', document.querySelector('.dp-tab-btn')),0);
@@ -2652,7 +3083,7 @@ function renderDpSummary(c){
     </div>
     <div id="edit-section-summary" style="display:none">
       <div class="dp-edit-form">
-        <div class="dp-edit-row"><textarea id="edit-summary" style="min-height:100px">${esc(c.summary||'')}</textarea></div>
+        <div class="dp-edit-row"><textarea id="edit-summary" style="min-height:100px;max-height:400px">${esc(c.summary||'')}</textarea></div>
         <!-- P3: AI 요약 생성 영역 -->
         <div style="margin-bottom:10px;padding:10px;background:var(--s-process-bg);border-radius:var(--radius-sm);border:1px solid var(--s-process-bg)">
           <div style="font-size:11px;color:var(--s-process);font-weight:500;margin-bottom:6px">AI 문서 요약</div>
@@ -2744,6 +3175,7 @@ function renderDpDeadlines(c){
       <span class="dp-dl-date">${dl.date}</span>
       <span class="dday-badge ${cls}">${fmtDday(d)}</span>
       <button class="ics-btn" onclick="event.stopPropagation();exportSingleDl(${i})" title=".ics 내보내기">📅</button>
+      <button class="dp-dl-edit" onclick="editDl(${i})" title="수정">✏️</button>
       <button class="dp-file-del" onclick="removeDl(${i})">×</button>
     </div>`;
   }).join(''):'<div style="font-size:12px;color:var(--text-muted);padding:4px 0">등록된 기일 없음</div>';
@@ -2758,9 +3190,10 @@ function renderDpDeadlines(c){
     <div class="dp-card-body">${dlHtml}</div>
     <div id="edit-section-deadlines" style="display:none">
       <div class="dp-edit-form">
+        ${c.category==='LIT'?`<div class="dp-edit-row"><select class="dl-preset-select" style="flex:1" onchange="if(this.value)document.getElementById('dlNameIn').value=this.value;this.value=''"><option value="">프리셋에서 선택</option>${LIT_DEADLINE_PRESETS.map(p=>`<option value="${p}">${p}</option>`).join('')}</select></div>`:''}
         <div class="dp-edit-row">
-          <input type="text" id="dlNameIn" placeholder="기일명 (예: 1차 변론기일)">
-          <input type="date" id="dlDateIn">
+          <input type="text" id="dlNameIn" placeholder="기일명 (예: 1차 변론기일)" style="flex:2">
+          <input type="date" id="dlDateIn" style="flex:1;min-width:140px">
           <button class="dp-edit-save" onclick="addDl()">추가</button>
         </div>
       </div>
@@ -2871,7 +3304,12 @@ function renderDpMemos(c){
   const memos=c.memos||[];
   const showAll=card.dataset.showAll==='1';
   const visible=showAll?memos:[...memos].slice(-3);
-  const memoHtml=visible.length?[...visible].reverse().map(m=>`<div class="dp-memo-item"><div class="dp-memo-meta">${m.date}</div><div class="dp-memo-text">${esc(m.text)}</div></div>`).join('')
+  const memoHtml=visible.length?[...visible].reverse().map((m,vi)=>{
+    // 원본 memos 배열에서의 실제 인덱스 계산
+    const ri=showAll?memos.length-1-vi:memos.length-1-vi;
+    const memoTextRendered=esc(m.text).replace(/@(\S+)/g,'<span class="memo-mention">@$1</span>');
+    return`<div class="dp-memo-item"><div class="dp-memo-meta">${m.author?'<span class="dp-memo-author">'+esc(m.author)+'</span>':''}${m.date}<span class="dp-memo-actions"><button class="dp-memo-action-btn" onclick="editMemo(${ri})" title="수정">✏️</button><button class="dp-memo-action-btn dp-memo-del" onclick="removeMemo(${ri})" title="삭제">×</button></span></div><div class="dp-memo-text" id="memo-text-${ri}">${memoTextRendered}</div></div>`;
+  }).join('')
     :'<div style="font-size:12px;color:var(--text-muted)">메모 없음</div>';
   const moreBtn=memos.length>3&&!showAll?`<div style="text-align:center;margin-top:6px"><button onclick="document.getElementById('dp-memos-card').dataset.showAll='1';renderDpMemos(cases.find(x=>x.id===curId))" class="dp-edit-cancel">더보기 (${memos.length-3}개)</button></div>`:'';
   card.innerHTML=`
@@ -2890,6 +3328,119 @@ function renderDpMemos(c){
         </div>
       </div>
     </div>`;
+}
+
+
+
+/* ===========================
+   Feature 8: 커뮤니케이션 로그
+   =========================== */
+const COMM_TYPES = {
+  report: '의뢰부서 보고',
+  negotiation: '상대방 협상',
+  court: '법원 제출/수령',
+  internal: '내부 회의',
+  other: '기타'
+};
+
+function renderDpComms(c){
+  const card=document.getElementById('dp-comms-card');if(!card)return;
+  const comms=c.comms||[];
+  const sorted=[...comms].reverse();
+  const commHtml=sorted.length?sorted.map((cm,vi)=>{
+    const ri=comms.length-1-vi;
+    return`<div class="comm-item">
+      <div class="comm-meta">
+        <span class="comm-type comm-type-${cm.type}">${COMM_TYPES[cm.type]||cm.type}</span>
+        <span class="comm-counterpart">${esc(cm.counterpart)}</span>
+        <span>${cm.date}</span>
+        <span>${esc(cm.author||'')}</span>
+        <span class="comm-actions">
+          <button class="comm-action-btn" onclick="editComm(${ri})" title="수정">\u270f\ufe0f</button>
+          <button class="comm-action-btn comm-del" onclick="removeComm(${ri})" title="삭제">\u00d7</button>
+        </span>
+      </div>
+      <div class="comm-content">${esc(cm.content)}</div>
+    </div>`;
+  }).join('')
+  :'<div style="font-size:12px;color:var(--text-muted)">커뮤니케이션 기록 없음</div>';
+
+  const typeOptions=Object.entries(COMM_TYPES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+
+  card.innerHTML=`
+    <div class="dp-card-header" style="border-left:3px solid #d97706">
+      <span class="dp-card-title">커뮤니케이션 로그 (${comms.length})</span>
+      <button class="dp-card-edit-btn" onclick="toggleSection('comms')" id="edit-btn-comms">+ 추가</button>
+    </div>
+    <div class="dp-card-body">${commHtml}</div>
+    <div id="edit-section-comms" style="display:none">
+      <div class="dp-edit-form">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+          <select id="commTypeIn" style="flex:0 0 auto;padding:4px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:12px">
+            ${typeOptions}
+          </select>
+          <input type="text" id="commCounterpartIn" placeholder="상대방/대상" style="flex:1;min-width:120px;padding:4px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:12px">
+          <input type="date" id="commDateIn" value="${today()}" style="flex:0 0 auto;padding:4px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:12px">
+        </div>
+        <div class="dp-edit-row">
+          <textarea id="commContentIn" placeholder="커뮤니케이션 내용 요약" style="flex:1;min-height:50px;padding:6px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:12px;font-family:inherit;resize:vertical"></textarea>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:6px">
+          <button class="dp-edit-save" onclick="addComm()">추가</button>
+          <button class="dp-edit-cancel" onclick="toggleSection('comms')">닫기</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function addComm(){
+  const c=cases.find(x=>x.id===curId);if(!c)return;
+  const type=document.getElementById('commTypeIn').value;
+  const counterpart=document.getElementById('commCounterpartIn').value.trim();
+  const content=document.getElementById('commContentIn').value.trim();
+  const date=document.getElementById('commDateIn').value||today();
+  if(!content){alert('내용을 입력해주세요.');return;}
+  if(!c.comms)c.comms=[];
+  c.comms.push({type,counterpart,content,date,author:currentUser?currentUser.name:''});
+  save();renderDpComms(c);renderDpTimeline(c);
+  document.getElementById('commContentIn').value='';
+  document.getElementById('commCounterpartIn').value='';
+  showToast('커뮤니케이션 기록 추가');
+}
+
+function editComm(i){
+  const c=cases.find(x=>x.id===curId);if(!c||!c.comms||!c.comms[i])return;
+  const cm=c.comms[i];
+  const el=document.querySelectorAll('.comm-item')[c.comms.length-1-i];
+  if(!el)return;
+  const typeOptions=Object.entries(COMM_TYPES).map(([k,v])=>`<option value="${k}" ${k===cm.type?'selected':''}>${v}</option>`).join('');
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:4px">
+    <div style="display:flex;gap:4px;flex-wrap:wrap">
+      <select id="comm-edit-type-${i}" style="padding:3px 6px;border:1px solid var(--border-dark);border-radius:4px;font-size:11px">${typeOptions}</select>
+      <input type="text" id="comm-edit-cp-${i}" value="${esc(cm.counterpart)}" placeholder="상대방" style="flex:1;padding:3px 6px;border:1px solid var(--border-dark);border-radius:4px;font-size:11px">
+    </div>
+    <textarea id="comm-edit-content-${i}" style="width:100%;min-height:50px;padding:4px 6px;border:1px solid var(--border-dark);border-radius:4px;font-size:11px;font-family:inherit;resize:vertical">${esc(cm.content)}</textarea>
+    <div style="display:flex;gap:4px">
+      <button class="dp-edit-save" onclick="saveCommEdit(${i})">저장</button>
+      <button class="dp-edit-cancel" onclick="renderDpComms(cases.find(x=>x.id===curId))">취소</button>
+    </div>
+  </div>`;
+}
+
+function saveCommEdit(i){
+  const c=cases.find(x=>x.id===curId);if(!c||!c.comms||!c.comms[i])return;
+  c.comms[i].type=document.getElementById('comm-edit-type-'+i).value;
+  c.comms[i].counterpart=document.getElementById('comm-edit-cp-'+i).value.trim();
+  c.comms[i].content=document.getElementById('comm-edit-content-'+i).value.trim();
+  save();renderDpComms(c);renderDpTimeline(c);
+  showToast('커뮤니케이션 기록 수정 완료');
+}
+
+function removeComm(i){
+  if(!confirm('이 커뮤니케이션 기록을 삭제하시겠습니까?'))return;
+  const c=cases.find(x=>x.id===curId);if(!c||!c.comms)return;
+  c.comms.splice(i,1);
+  save();renderDpComms(c);renderDpTimeline(c);
 }
 
 /* ===== 대외비 토글 ===== */
@@ -3154,13 +3705,193 @@ async function agentSend(){
   }
 }
 
+let _agentMsgIdx=0;
 function appendAgentMsg(role,text,source=''){
   const chat=document.getElementById('agentChat');
   if(!chat)return;
   const cls=role==='user'?'agent-msg-user':'agent-msg-ai';
   const srcHtml=source&&role==='ai'?`<div class="agent-msg-source">참조 파일: ${esc(source)}</div>`:'';
-  chat.insertAdjacentHTML('beforeend',`<div class="agent-msg ${cls}">${esc(text)}${srcHtml}</div>`);
+  let actionsHtml='';
+  if(role==='ai'&&text&&!text.startsWith('파일을 먼저')&&!text.startsWith('오류')){
+    const idx=_agentMsgIdx++;
+    // 텍스트를 data 속성에 저장 (HTML escape된 상태)
+    actionsHtml=`<div class="agent-msg-actions" data-agent-text-idx="${idx}">
+      <button class="agent-action-btn" onclick="agentCopyResult(${idx})">📋 복사</button>
+      <button class="agent-action-btn" onclick="agentDownloadResult(${idx})">💾 파일 저장</button>
+      <button class="agent-action-btn" onclick="agentSaveAsMemo(${idx})">📝 메모로 저장</button>
+      <button class="agent-action-btn" onclick="agentSaveToSummary(${idx})">⭐ 요약에 저장</button>
+      <button class="agent-action-btn" onclick="agentSaveToSP(${idx})">📁 SharePoint 저장</button>
+    </div>`;
+    // 원문을 전역 저장소에 보관
+    if(!window._agentResults)window._agentResults={};
+    window._agentResults[idx]={text,source,timestamp:new Date().toLocaleString('ko-KR')};
+  }
+  chat.insertAdjacentHTML('beforeend',`<div class="agent-msg ${cls}">${esc(text)}${srcHtml}${actionsHtml}</div>`);
   chat.scrollTop=chat.scrollHeight;
+}
+
+/* ===== AI 에이전트 결과 저장 ===== */
+function _getAgentResult(idx){
+  const r=(window._agentResults||{})[idx];
+  if(!r){showToast('결과를 찾을 수 없습니다');return null;}
+  return r;
+}
+function _markActionDone(idx,btnText){
+  const bar=document.querySelector(`[data-agent-text-idx="${idx}"]`);
+  if(!bar)return;
+  bar.querySelectorAll('.agent-action-btn').forEach(b=>{
+    if(b.textContent.includes(btnText)){b.classList.add('done');b.textContent='✓ '+btnText;}
+  });
+}
+
+// 1) 클립보드 복사
+function agentCopyResult(idx){
+  const r=_getAgentResult(idx);if(!r)return;
+  navigator.clipboard.writeText(r.text).then(()=>{
+    showToast('AI 분석 결과가 복사되었습니다');
+    _markActionDone(idx,'복사');
+  }).catch(()=>{
+    // fallback
+    const tmp=document.createElement('textarea');tmp.value=r.text;document.body.appendChild(tmp);tmp.select();document.execCommand('copy');document.body.removeChild(tmp);
+    showToast('AI 분석 결과가 복사되었습니다');
+    _markActionDone(idx,'복사');
+  });
+}
+
+// 2) 파일 다운로드 (.txt)
+function agentDownloadResult(idx){
+  const r=_getAgentResult(idx);if(!r)return;
+  const c=cases.find(x=>x.id===curId);
+  const caseInfo=c?`사건: ${c.caseNum} ${c.name}\n`:'';
+  const header=`AI 문서 분석 결과\n${caseInfo}생성일시: ${r.timestamp}\n참조 파일: ${r.source||'없음'}\n${'─'.repeat(40)}\n\n`;
+  const content=header+r.text;
+  const blob=new Blob(['\uFEFF'+content],{type:'text/plain;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  const fname=c?`AI분석_${c.caseNum}_${today()}.txt`:`AI분석_${today()}.txt`;
+  a.download=fname;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast(`${fname} 다운로드 완료`);
+  _markActionDone(idx,'파일 저장');
+}
+
+// 3) 메모로 저장 (500자 AI 자동요약)
+async function agentSaveAsMemo(idx){
+  const r=_getAgentResult(idx);if(!r)return;
+  const c=cases.find(x=>x.id===curId);
+  if(!c){showToast('사건 정보를 찾을 수 없습니다');return;}
+  if(!c.memos)c.memos=[];
+  const btn=document.querySelector(`[data-agent-text-idx="${idx}"] .agent-action-btn:nth-child(3)`);
+  const originalText=r.text;
+  let memoBody=originalText;
+  // 500자 초과 시 AI 자동 요약
+  if(originalText.length>500){
+    if(btn){btn.textContent='요약 중...';btn.style.pointerEvents='none';}
+    try{
+      if(AI_CONFIG.API_KEY){
+        memoBody=(await callAI({
+          messages:[{role:'user',content:`다음 법률 분석 결과를 500자 이내로 핵심만 요약하세요. 요약문만 출력하고 다른 설명은 하지 마세요.\n\n${originalText}`}],
+          max_tokens:400
+        })).trim();
+        if(!memoBody)memoBody=originalText.slice(0,500)+'…';
+      }else{
+        memoBody=originalText.slice(0,500)+'…\n\n(전체 내용은 파일 저장을 이용하세요)';
+      }
+    }catch(e){
+      memoBody=originalText.slice(0,500)+'…\n\n(AI 요약 실패 — 전체 내용은 파일 저장을 이용하세요)';
+    }
+  }
+  const prefix=`[AI 에이전트 분석] ${r.source?'('+r.source+') ':''}`;
+  c.memos.push({text:prefix+memoBody,date:r.timestamp});
+  save();renderDpMemos(c);renderDpTimeline(c);
+  showToast(`메모 저장 완료 (${memoBody.length}자)`);
+  _markActionDone(idx,'메모로 저장');
+  if(btn)btn.style.pointerEvents='';
+}
+
+// 4) 요약에 저장 (사건 summary 필드에 누적 추가)
+async function agentSaveToSummary(idx){
+  const r=_getAgentResult(idx);if(!r)return;
+  const c=cases.find(x=>x.id===curId);
+  if(!c){showToast('사건 정보를 찾을 수 없습니다');return;}
+  const btn=document.querySelector(`[data-agent-text-idx="${idx}"] .agent-action-btn:nth-child(4)`);
+  let addText=r.text;
+  // 300자 초과 시 AI 요약
+  if(addText.length>300){
+    if(btn){btn.textContent='요약 중...';btn.style.pointerEvents='none';}
+    try{
+      if(AI_CONFIG.API_KEY){
+        addText=(await callAI({
+          messages:[{role:'user',content:`다음 법률 분석 결과를 300자 이내로 핵심만 요약하세요. 요약문만 출력하고 다른 설명은 하지 마세요.\n\n${r.text}`}],
+          max_tokens:300
+        })).trim();
+        if(!addText)addText=r.text.slice(0,300)+'…';
+      }else{
+        addText=r.text.slice(0,300)+'…';
+      }
+    }catch(e){
+      addText=r.text.slice(0,300)+'…';
+    }
+  }
+  const datestamp=r.timestamp.split(' ')[0]||today();
+  const entry=`\n\n[AI 분석 ${datestamp}] ${addText}`;
+  c.summary=(c.summary||'')+entry;
+  save();renderDpSummary(c);renderDpTimeline(c);
+  showToast('사건 요약에 추가되었습니다');
+  _markActionDone(idx,'요약에 저장');
+  if(btn)btn.style.pointerEvents='';
+}
+
+// 5) SharePoint 폴더에 저장 (Power Automate webhook 경유)
+function agentSaveToSP(idx){
+  const r=_getAgentResult(idx);if(!r)return;
+  const c=cases.find(x=>x.id===curId);
+  if(!c){showToast('사건 정보를 찾을 수 없습니다');return;}
+  if(!c.spFolderUrl){
+    showToast('SharePoint 폴더가 설정되지 않았습니다. 파일 탭에서 먼저 설정하세요.');
+    // 파일 탭으로 전환 안내
+    switchFileTab('files');
+    return;
+  }
+  const webhookUrl=localStorage.getItem('legalWebhookUrl');
+  if(!webhookUrl){
+    // webhook 미설정 → 다운로드 대체 제안
+    if(confirm('Power Automate webhook이 설정되지 않았습니다.\n\n[확인] 파일 다운로드 후 수동으로 SharePoint에 업로드\n[취소] 취소')){
+      agentDownloadResult(idx);
+    }
+    return;
+  }
+  // webhook으로 전송
+  const caseInfo=c?`사건: ${c.caseNum} ${c.name}\n`:'';
+  const header=`AI 문서 분석 결과\n${caseInfo}생성일시: ${r.timestamp}\n참조 파일: ${r.source||'없음'}\n${'─'.repeat(40)}\n\n`;
+  const content=header+r.text;
+  const fname=`AI분석_${c.caseNum}_${today()}.txt`;
+  const payload={
+    type:'save_to_sharepoint',
+    caseNum:c.caseNum,
+    caseName:c.name,
+    folderUrl:c.spFolderUrl,
+    fileName:fname,
+    content:content,
+    mimeType:'text/plain',
+    message:`[법무대시보드] AI 분석 결과 SharePoint 저장 요청: ${fname}`
+  };
+  const btn=document.querySelector(`[data-agent-text-idx="${idx}"] .agent-action-btn:last-child`);
+  if(btn){btn.textContent='전송 중...';btn.style.pointerEvents='none';}
+  fetch(webhookUrl,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  }).then(res=>{
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    showToast(`${fname} → SharePoint 저장 요청 완료`);
+    _markActionDone(idx,'SharePoint 저장');
+  }).catch(e=>{
+    showToast('SharePoint 저장 실패: '+e.message);
+    if(btn){btn.textContent='📁 SharePoint 저장';btn.style.pointerEvents='';}
+    if(confirm('전송 실패. 파일로 다운로드할까요?'))agentDownloadResult(idx);
+  });
 }
 
 /* ===== 통합 타임라인 (F-D6) — P2: 기본 접힘 + 유형 필터 + 토글 ===== */
@@ -3322,10 +4053,69 @@ function renderMemos(c){renderDpMemos(c);}
 function addMemo(){
   const inp=document.getElementById('memoIn'),text=inp.value.trim();if(!text)return;
   const c=cases.find(x=>x.id===curId);if(!c)return;
-  if(!c.memos)c.memos=[];c.memos.push({text,date:new Date().toLocaleString('ko-KR')});
+  if(!c.memos)c.memos=[];c.memos.push({text,date:new Date().toLocaleString('ko-KR'),author:currentUser?.name||'알 수 없음'});
   save();renderDpMemos(c);renderDpTimeline(c);inp.value='';
 }
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement.id==='memoIn')addMemo();});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement.id==='memoIn'){const dd=document.getElementById('memoMentionDrop');if(dd&&dd.style.display!=='none')return;addMemo();}});
+
+/* @멘션 자동완성 */
+let _mentionDropOpen=false;
+document.addEventListener('input',function(e){
+  if(e.target.id!=='memoIn')return;
+  const inp=e.target,val=inp.value,pos=inp.selectionStart;
+  const before=val.substring(0,pos);
+  const atMatch=before.match(/@(\S*)$/);
+  let dd=document.getElementById('memoMentionDrop');
+  if(!atMatch){if(dd)dd.style.display='none';_mentionDropOpen=false;return;}
+  const query=atMatch[1].toLowerCase();
+  const lawyerList=[...new Set(cases.map(c=>c.lawyer).filter(Boolean))];
+  const filtered=lawyerList.filter(l=>l.toLowerCase().includes(query));
+  if(!filtered.length){if(dd)dd.style.display='none';_mentionDropOpen=false;return;}
+  if(!dd){dd=document.createElement('div');dd.id='memoMentionDrop';dd.className='memo-mention-dropdown';document.body.appendChild(dd);}
+  const rect=inp.getBoundingClientRect();
+  dd.style.left=rect.left+'px';dd.style.top=(rect.bottom+2)+'px';dd.style.minWidth='120px';dd.style.display='block';
+  _mentionDropOpen=true;
+  dd.innerHTML=filtered.map(l=>'<div data-name="'+esc(l)+'" onmousedown="insertMention(\''+esc(l).replace(/'/g,"\\'")+'\')">'+esc(l)+'</div>').join('');
+});
+function insertMention(name){
+  const inp=document.getElementById('memoIn');if(!inp)return;
+  const val=inp.value,pos=inp.selectionStart;
+  const before=val.substring(0,pos);
+  const after=val.substring(pos);
+  const newBefore=before.replace(/@(\S*)$/,'@'+name+' ');
+  inp.value=newBefore+after;
+  inp.focus();inp.selectionStart=inp.selectionEnd=newBefore.length;
+  const dd=document.getElementById('memoMentionDrop');if(dd)dd.style.display='none';
+  _mentionDropOpen=false;
+}
+document.addEventListener('click',function(e){
+  if(e.target.id!=='memoIn'){const dd=document.getElementById('memoMentionDrop');if(dd)dd.style.display='none';_mentionDropOpen=false;}
+});
+
+function editMemo(i){
+  const c=cases.find(x=>x.id===curId);if(!c||!c.memos||!c.memos[i])return;
+  const el=document.getElementById('memo-text-'+i);if(!el)return;
+  const m=c.memos[i];
+  el.innerHTML=`<textarea class="memo-edit-textarea" id="memo-edit-${i}" style="width:100%;min-height:60px;padding:6px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:12px;font-family:inherit;resize:vertical">${esc(m.text)}</textarea><div style="display:flex;gap:4px;margin-top:4px"><button class="dp-edit-save" onclick="saveMemoEdit(${i})">저장</button><button class="dp-edit-cancel" onclick="renderDpMemos(cases.find(x=>x.id===curId))">취소</button></div>`;
+  document.getElementById('memo-edit-'+i)?.focus();
+}
+function saveMemoEdit(i){
+  const c=cases.find(x=>x.id===curId);if(!c||!c.memos||!c.memos[i])return;
+  const ta=document.getElementById('memo-edit-'+i);if(!ta)return;
+  const text=ta.value.trim();
+  if(!text){showToast('빈 메모는 저장할 수 없습니다');return;}
+  c.memos[i].text=text;
+  c.memos[i].date=c.memos[i].date+' (수정)';
+  save();renderDpMemos(c);renderDpTimeline(c);
+  showToast('메모 수정 완료');
+}
+function removeMemo(i){
+  const c=cases.find(x=>x.id===curId);if(!c||!c.memos||!c.memos[i])return;
+  if(!confirm('이 메모를 삭제할까요?'))return;
+  c.memos.splice(i,1);
+  save();renderDpMemos(c);renderDpTimeline(c);
+  showToast('메모 삭제 완료');
+}
 
 /* F4 기일 */
 function renderDls(c){renderDpDeadlines(c);}
@@ -3348,10 +4138,67 @@ function addDl(){
   if(d>=0&&d<=7){
     sendWebhookAlert({type:'deadline_added',caseNum:c.caseNum,caseName:c.name,deadlineName:name,date,dday:d,lawyer:c.lawyer||'',message:`[법무대시보드] ${c.caseNum} 기일 등록: "${name}" ${fmtDday(d)}`});
   }
+  // 자동 연산 제안 (소송 기일)
+  if(c.category==='LIT'){
+    DEADLINE_AUTO_RULES.forEach(rule=>{
+      if(rule.trigger===name){
+        rule.generates.forEach(gen=>{
+          const existing=c.deadlines.find(dl=>dl.name===gen.name);
+          if(!existing){
+            const genDate=calcOffsetDate(date,gen.offset);
+            const offsetStr=gen.offset>0?`D+${gen.offset}`:`D${gen.offset}`;
+            showAutoDeadlineToast(c,gen.name,genDate,offsetStr);
+          }
+        });
+      }
+    });
+  }
+}
+function showAutoDeadlineToast(c,dlName,dlDate,offsetStr){
+  const t=document.getElementById('toast');
+  t.innerHTML=`<span>${esc(dlName)}(${offsetStr}: ${dlDate}) 자동 추가?</span><button class="toast-undo-btn" onclick="acceptAutoDeadline('${c.id}','${esc(dlName)}','${dlDate}')">추가</button>`;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),6000);
+}
+function acceptAutoDeadline(caseId,dlName,dlDate){
+  const c=cases.find(x=>x.id===caseId);if(!c)return;
+  if(!c.deadlines)c.deadlines=[];
+  c.deadlines.push({name:dlName,date:dlDate});
+  save();
+  if(curId===caseId){renderDpDeadlines(c);renderDpTimeline(c);}
+  renderDday();
+  document.getElementById('toast').classList.remove('show');
+  showToast(`${dlName} (${dlDate}) 추가됨`);
 }
 function removeDl(i){
   const c=cases.find(x=>x.id===curId);if(!c)return;
   c.deadlines.splice(i,1);save();renderDpDeadlines(c);renderDday();
+}
+function editDl(i){
+  const c=cases.find(x=>x.id===curId);if(!c||!c.deadlines||!c.deadlines[i])return;
+  const dl=c.deadlines[i];
+  const card=document.getElementById('dp-deadlines-card');
+  const items=card.querySelectorAll('.dp-dl-item');
+  const item=items[i];if(!item)return;
+  item.innerHTML=`
+    <div style="display:flex;gap:6px;align-items:center;width:100%;flex-wrap:wrap">
+      <input type="text" id="dlEdit-name" value="${esc(dl.name)}" style="flex:2;min-width:120px;padding:5px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:12px">
+      <input type="date" id="dlEdit-date" value="${dl.date||''}" style="flex:1;min-width:140px;padding:5px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:12px">
+      <button class="dp-edit-save" onclick="saveDlEdit(${i})">저장</button>
+      <button class="dp-edit-cancel" onclick="renderDpDeadlines(cases.find(x=>x.id===curId))">취소</button>
+    </div>`;
+  document.getElementById('dlEdit-name')?.focus();
+}
+function saveDlEdit(i){
+  const c=cases.find(x=>x.id===curId);if(!c||!c.deadlines||!c.deadlines[i])return;
+  const name=document.getElementById('dlEdit-name').value.trim();
+  const date=document.getElementById('dlEdit-date').value;
+  if(!name||!date){alert('기일명과 날짜를 입력해주세요.');return;}
+  c.deadlines[i].name=name;
+  c.deadlines[i].date=date;
+  save();renderDpDeadlines(c);renderDday();renderDpTimeline(c);
+  showToast('기일 수정 완료');
 }
 
 /* F7 파일 */
@@ -4035,9 +4882,9 @@ function saveNotifs(arr){
   localStorage.setItem(LS_NOTIF,JSON.stringify(arr));
 }
 
-function addNotif(type,msg,caseId){
+function addNotif(type,msg,caseId,level){
   const notifs=getNotifs();
-  notifs.push({id:`n_${Date.now()}`,type,msg,date:new Date().toLocaleString('ko-KR'),read:false,caseId:caseId||null});
+  notifs.push({id:`n_${Date.now()}`,type,msg,date:new Date().toLocaleString('ko-KR'),read:false,caseId:caseId||null,level:level||null});
   saveNotifs(notifs);
   updateNotifBadge();
 }
@@ -4062,14 +4909,17 @@ function renderNotifList(){
   const list=document.getElementById('notifList');if(!list)return;
   const notifs=getNotifs().reverse();
   if(!notifs.length){list.innerHTML='<div class="notif-empty">📭 알림이 없습니다</div>';return;}
-  list.innerHTML=notifs.map(n=>`
-    <div class="notif-item ${n.read?'read':'unread'}" onclick="clickNotif('${n.id}','${n.caseId||''}')">
+  list.innerHTML=notifs.map(n=>{
+    const lvlClass=n.level?'notif-'+n.level:'';
+    const lvlBadge=n.level?'<span class="notif-level-badge notif-level-'+n.level+'">'+(DEADLINE_ALERT_LEVELS&&DEADLINE_ALERT_LEVELS.find(l=>l.level===n.level)?DEADLINE_ALERT_LEVELS.find(l=>l.level===n.level).label:n.level)+'</span>':'';
+    return `
+    <div class="notif-item ${n.read?'read':'unread'} ${lvlClass}" onclick="clickNotif('${n.id}','${n.caseId||''}')">
       <div class="notif-dot"></div>
       <div class="notif-body">
-        <div class="notif-msg">${esc(n.msg)}</div>
+        <div class="notif-msg">${lvlBadge}${esc(n.msg)}</div>
         <div class="notif-time">${n.date}</div>
       </div>
-    </div>`).join('');
+    </div>`;}).join('');
 }
 
 function clickNotif(nid,caseId){
@@ -4368,6 +5218,116 @@ async function parseEmailAI(){
 }
 
 /* ══════════════════════════════════════
+   파일로 등록: 파일 업로드 → AI 파싱 → 자동 입력
+═══════════════════════════════════════ */
+let _regFileText='';
+let _regFileSource=false; // true면 파일 기반 등록
+
+function handleRegFileDrop(e){
+  const file=e.dataTransfer?.files?.[0];
+  if(file)processRegFile(file);
+}
+function handleRegFile(e){
+  const file=e.target?.files?.[0];
+  if(file)processRegFile(file);
+}
+async function processRegFile(file){
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(!['pdf','docx','txt'].includes(ext)){alert('PDF, DOCX, TXT 파일만 지원합니다.');return;}
+  // 파일 정보 표시
+  const infoEl=document.getElementById('reg-file-info');
+  const sizeKB=(file.size/1024).toFixed(1);
+  infoEl.innerHTML=`<div class="reg-file-info"><span>📄</span><span class="file-name">${esc(file.name)}</span><span class="file-size">${sizeKB} KB</span><span class="file-remove" onclick="clearRegFile()">&times;</span></div>`;
+  infoEl.style.display='block';
+  // 텍스트 추출
+  try{
+    let text='';
+    if(ext==='txt'){
+      text=await file.text();
+    }else if(ext==='pdf'){
+      text=await extractPdfText(file);
+    }else if(ext==='docx'){
+      if(!window.mammoth){
+        await new Promise((res,rej)=>{const s=document.createElement('script');
+          s.src='https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';
+          s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+      }
+      const buf=await file.arrayBuffer();
+      const result=await window.mammoth.extractRawText({arrayBuffer:buf});
+      text=result.value||'';
+    }
+    _regFileText=text.slice(0,8000); // 최대 8000자
+    const previewEl=document.getElementById('reg-file-preview-text');
+    previewEl.textContent=_regFileText.slice(0,2000)+(text.length>2000?'\n\n... (이하 생략)':'');
+    document.getElementById('reg-file-preview-wrap').style.display='block';
+    document.getElementById('reg-file-ai-btn').disabled=false;
+  }catch(e){
+    showToast('텍스트 추출 실패: '+e.message);
+    _regFileText='';
+    document.getElementById('reg-file-ai-btn').disabled=true;
+  }
+}
+function clearRegFile(){
+  _regFileText='';_regFileSource=false;
+  document.getElementById('reg-file-info').style.display='none';
+  document.getElementById('reg-file-preview-wrap').style.display='none';
+  document.getElementById('reg-file-ai-btn').disabled=true;
+  document.getElementById('reg-file-input').value='';
+}
+async function parseFileAI(){
+  if(!_regFileText){alert('먼저 파일을 업로드해 주세요.');return;}
+  if(!AI_CONFIG.API_KEY){alert('AI API Key가 설정되지 않았습니다.\n사이드바 하단 설정에서 Anthropic API Key를 입력하세요.');return;}
+  const btn=document.getElementById('reg-file-ai-btn');
+  btn.disabled=true;btn.textContent='AI 분석 중...';
+  try{
+    let raw=(await callAI({
+      messages:[{role:'user',content:`다음은 한국 법률 문서(소장, 답변서, 계약서, 자문보고서 등)에서 추출한 텍스트입니다. 법무 사건 정보를 추출하여 JSON으로만 출력하세요. 설명 없이 JSON만 출력.\n\n문서 텍스트:\n${_regFileText}\n\n출력 형식:\n{"name":"사건명","summary":"사건 요약(200자 이내)","category":"LIT|ADV|INT|REG|ETC","tags":["태그1","태그2"],"parties":[{"type":"상대방","company":"회사명","contact":"연락처(있으면)"}],"deadlines":[{"name":"기일명","date":"YYYY-MM-DD"}]}\n\n분류 기준: LIT=소송·중재, ADV=일반자문, INT=내부자문, REG=규제·행정, ETC=기타\n날짜를 특정할 수 없으면 deadlines는 빈 배열로. 정보가 없는 필드는 빈 문자열 또는 빈 배열로.`}],
+      max_tokens:600
+    })).trim()||'{}';
+    raw=raw.replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(raw);
+    // 수동 탭으로 전환
+    const mt=document.querySelector('.form-tab');if(mt)switchRegTab('manual',mt);
+    // 필드 자동 입력 (노란 배경 하이라이트)
+    const setAI=(id,val)=>{
+      const el=document.getElementById(id);
+      if(el&&val){el.value=val;el.classList.add('ai-highlight');el.title='AI 추론됨';}
+    };
+    setAI('m-name',parsed.name);
+    setAI('m-summary',parsed.summary);
+    if(parsed.category){const s=document.getElementById('m-cat');if(s){s.value=parsed.category;s.classList.add('ai-highlight');}}
+    if(parsed.tags&&parsed.tags.length){setAI('m-tags',parsed.tags.join(', '));}
+    // 관계자 채우기
+    if(parsed.parties&&parsed.parties.length){
+      parsed.parties.slice(0,5).forEach(pt=>{
+        addRegParty('m');
+        const list=document.getElementById('m-parties-list');
+        const row=list.lastElementChild;
+        const sel=row.querySelector('select');if(sel&&pt.type)sel.value=pt.type;
+        const inputs=row.querySelectorAll('input');
+        if(inputs[0]&&pt.company){inputs[0].value=pt.company;inputs[0].classList.add('ai-highlight');}
+        if(inputs[1]&&pt.contact){inputs[1].value=pt.contact;inputs[1].classList.add('ai-highlight');}
+      });
+    }
+    // 기일 채우기
+    if(parsed.deadlines&&parsed.deadlines.length){
+      parsed.deadlines.slice(0,5).forEach(dl=>{
+        addRegDeadline('m');
+        const list=document.getElementById('m-deadlines-list');
+        const row=list.lastElementChild;
+        const inputs=row.querySelectorAll('input');
+        if(inputs[0]&&dl.name){inputs[0].value=dl.name;inputs[0].classList.add('ai-highlight');}
+        if(inputs[1]&&dl.date){inputs[1].value=dl.date;inputs[1].classList.add('ai-highlight');}
+      });
+    }
+    _regFileSource=true;
+    updateNamePreview();updateCaseNumPreview();
+    showToast('AI 분석 완료 — 노란 배경 필드를 확인하세요');
+  }catch(e){showToast('AI 분석 실패: '+e.message);}
+  btn.disabled=false;btn.textContent='✨ AI로 분석하여 자동 입력';
+}
+
+/* ══════════════════════════════════════
    A6: 전체 DB 챗봇
 ═══════════════════════════════════════ */
 let gcHistory=[];
@@ -4384,11 +5344,20 @@ async function sendGlobalChat(){
   // 사용자 메시지 추가
   msgs.innerHTML+=`<div class="gc-msg gc-msg-user">${esc(q)}</div>`;
   msgs.scrollTop=msgs.scrollHeight;
-  // 사건 DB 요약 컨텍스트 (최대 3000자)
-  const dbCtx=cases.filter(c=>canAccess(c)).slice(0,50).map(c=>
-    `[${c.caseNum}] ${c.name} (${CAT[c.category]||c.category}, ${STS[c.status]||c.status}, 담당:${c.lawyer||'-'}, 접수:${c.date||'-'})`
-  ).join('\n');
-  const sysPrompt=`당신은 법무팀 AI 어시스턴트입니다. 아래는 현재 사건 목록입니다:\n${dbCtx}\n\n사건번호를 언급할 때는 [사건번호] 형식으로 작성하면 클릭 링크가 됩니다.`;
+  // 사건 DB 컨텍스트 (기일·관계자·비용 포함)
+  const todayStr=today();
+  const dbCtx=cases.filter(c=>canAccess(c)).slice(0,50).map(c=>{
+    let line=`[${c.caseNum}] ${c.name} (${CAT[c.category]||c.category}, ${STS[c.status]||c.status}, 담당:${c.lawyer||'-'}, 접수:${c.date||'-'})`;
+    const dls=(c.deadlines||[]).filter(dl=>dl.date);
+    if(dls.length)line+=`\n  기일: ${dls.map(dl=>`${dl.name}(${dl.date}, ${fmtDday(dday(dl.date))})`).join(', ')}`;
+    const pts=(c.parties||[]).filter(p=>p.company);
+    if(pts.length)line+=`\n  관계자: ${pts.map(p=>`${p.type||''}:${p.company}`).join(', ')}`;
+    const costTotal=(c.costs||[]).reduce((s,ct)=>s+parseInt(ct.amount||0),0);
+    if(costTotal>0)line+=`\n  비용합계: ${fmtMoney(costTotal)}`;
+    if(c.summary)line+=`\n  요약: ${c.summary.slice(0,100)}`;
+    return line;
+  }).join('\n');
+  const sysPrompt=`당신은 법무팀 AI 어시스턴트입니다. 오늘은 ${todayStr}입니다. 아래는 현재 사건 목록과 상세 정보입니다:\n${dbCtx}\n\n사건번호를 언급할 때는 [사건번호] 형식으로 작성하면 클릭 링크가 됩니다. 기일의 D-day가 음수(D+N)이면 이미 지난 기일, 양수(D-N)이면 남은 일수입니다.`;
   gcHistory.push({role:'user',content:q});
   if(gcHistory.length>6)gcHistory=gcHistory.slice(-6);
   try{
@@ -4604,6 +5573,7 @@ function copyCase(id){
   _copiedData={
     parties:JSON.parse(JSON.stringify(c.parties||[])),
     tags:[...(c.tags||[])],
+    deadlines:JSON.parse(JSON.stringify(c.deadlines||[])),
   };
   openReg();
   setTimeout(()=>{
@@ -4616,6 +5586,30 @@ function copyCase(id){
     if(conf){conf.checked=c.confidential||false;toggleConfAllowed('m');}
     const au=document.getElementById('m-allowedUsers');
     if(au)au.value=(c.allowedUsers||[]).join(', ');
+    // 태그 프리필
+    const tagsInp=document.getElementById('m-tags');
+    if(tagsInp&&c.tags&&c.tags.length)tagsInp.value=c.tags.join(', ');
+    // 기일 프리필
+    if(c.deadlines&&c.deadlines.length){
+      c.deadlines.slice(0,3).forEach(dl=>{
+        addRegDeadline('m');
+        const list=document.getElementById('m-deadlines-list');
+        const row=list.lastElementChild;
+        const inputs=row.querySelectorAll('input');
+        inputs[0].value=dl.name||'';inputs[1].value=dl.date||'';
+      });
+    }
+    // 관계자 프리필
+    if(c.parties&&c.parties.length){
+      c.parties.slice(0,3).forEach(pt=>{
+        addRegParty('m');
+        const list=document.getElementById('m-parties-list');
+        const row=list.lastElementChild;
+        const sel=row.querySelector('select');if(sel)sel.value=pt.type||'상대방';
+        const inputs=row.querySelectorAll('input');
+        inputs[0].value=pt.company||'';inputs[1].value=pt.contact||'';
+      });
+    }
     updateNamePreview();updateCaseNumPreview();
     showToast(`[${c.caseNum}] 복사됨 — 내용 확인 후 등록하세요`);
   },80);
@@ -4624,7 +5618,7 @@ function copyCase(id){
 /* ===========================
    N3: 법무 비용 관리
    =========================== */
-const DEFAULT_COST_TYPES=['인지대','변호사 보수','자문비용','감정비용','송달료','기타'];
+const DEFAULT_COST_TYPES=['자문비용','변호사 보수','인지대','송달료','감정비용','기타'];
 const LS_COST_TYPES='legalCostTypes';
 
 function getCostTypes(){
@@ -4649,6 +5643,7 @@ function renderDpCosts(c){
       <span class="cost-date">${ct.date||''}</span>
       ${ct.advisor?`<span style="font-size:11px;color:var(--text-secondary);flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(ct.advisor)}">${esc(ct.advisor)}</span>`:''}
       ${ct.contractUrl?`<a href="${esc(ct.contractUrl)}" target="_blank" rel="noopener" style="font-size:12px;color:var(--s-process)" title="계약서/청구서 열기">📎</a>`:''}
+      <button class="cost-edit-btn" onclick="editCost(${i})" title="수정">✏️</button>
       <button class="cost-del" onclick="removeCost(${i})">×</button>
     </div>`).join('')
     :'<div style="font-size:12px;color:var(--text-muted);padding:4px 0">등록된 비용 없음</div>';
@@ -4706,6 +5701,43 @@ function addCost(){
 function removeCost(i){
   const c=cases.find(x=>x.id===curId);if(!c)return;
   c.costs.splice(i,1);save();renderDpCosts(c);renderSummary();
+}
+
+function editCost(i){
+  const c=cases.find(x=>x.id===curId);if(!c||!c.costs||!c.costs[i])return;
+  const ct=c.costs[i];
+  const card=document.getElementById('dp-costs-card');
+  const body=card.querySelector('.dp-card-body');
+  const items=body.querySelectorAll('.cost-item');
+  const item=items[i];if(!item)return;
+  item.innerHTML=`
+    <div style="width:100%;display:flex;flex-direction:column;gap:6px;padding:4px 0">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <select id="costEdit-type" style="max-width:110px;padding:5px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:12px">
+          ${COST_TYPES.map(t=>`<option value="${t}"${t===ct.type?' selected':''}>${t}</option>`).join('')}
+        </select>
+        <input type="number" id="costEdit-amount" value="${ct.amount||0}" min="0" style="width:120px;padding:5px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:12px">
+        <input type="date" id="costEdit-date" value="${ct.date||''}" style="padding:5px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:12px">
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <input type="text" id="costEdit-advisor" value="${esc(ct.advisor||'')}" placeholder="자문처/변호사명" style="flex:1;min-width:100px;padding:5px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:12px">
+        <input type="text" id="costEdit-note" value="${esc(ct.note||'')}" placeholder="비고" style="flex:1;min-width:80px;padding:5px 8px;border:1px solid var(--border-dark);border-radius:4px;font-size:12px">
+        <button class="dp-edit-save" onclick="saveCostEdit(${i})">저장</button>
+        <button class="dp-edit-cancel" onclick="renderDpCosts(cases.find(x=>x.id===curId))">취소</button>
+      </div>
+    </div>`;
+}
+function saveCostEdit(i){
+  const c=cases.find(x=>x.id===curId);if(!c||!c.costs||!c.costs[i])return;
+  const amount=parseInt(document.getElementById('costEdit-amount').value||'0');
+  if(!amount){alert('금액을 입력해주세요.');return;}
+  c.costs[i].type=document.getElementById('costEdit-type').value;
+  c.costs[i].amount=amount;
+  c.costs[i].date=document.getElementById('costEdit-date').value;
+  c.costs[i].advisor=(document.getElementById('costEdit-advisor')?.value||'').trim();
+  c.costs[i].note=(document.getElementById('costEdit-note')?.value||'').trim();
+  save();renderDpCosts(c);renderSummary();
+  showToast('비용 수정 완료');
 }
 
 /* ===========================
@@ -4895,6 +5927,40 @@ function exportIcs(deadlines, caseName, caseNum, lawyer){
 /* ===========================
    N7: 연관 사건 링크
    =========================== */
+/* Feature 5: 연관 사건 자동 추천 */
+function getAutoRelatedCases(c){
+  const linked=new Set(c.relatedCases||[]);
+  linked.add(c.id);
+  const myParties=(c.parties||[]).map(p=>(p.company||'').trim().toLowerCase()).filter(Boolean);
+  const myDept=(c.dept||'').trim().toLowerCase();
+  const myLawyer=(c.lawyer||'').trim().toLowerCase();
+  const myTags=(c.tags||[]).map(t=>t.toLowerCase());
+  const scored=[];
+  cases.forEach(x=>{
+    if(linked.has(x.id))return;
+    if(x.status==='done')return;
+    let score=0;
+    const reasons=[];
+    const xParties=(x.parties||[]).map(p=>(p.company||'').trim().toLowerCase()).filter(Boolean);
+    if(myParties.length&&xParties.length){
+      const shared=myParties.filter(p=>xParties.includes(p));
+      if(shared.length>0){score+=3;reasons.push('같은 상대방');}
+    }
+    const xDept=(x.dept||'').trim().toLowerCase();
+    if(myDept&&xDept&&myDept===xDept){score+=2;reasons.push('같은 의뢰부서');}
+    const xLawyer=(x.lawyer||'').trim().toLowerCase();
+    if(myLawyer&&xLawyer&&myLawyer===xLawyer){score+=1;reasons.push('같은 담당자');}
+    const xTags=(x.tags||[]).map(t=>t.toLowerCase());
+    if(myTags.length&&xTags.length){
+      const overlap=myTags.filter(t=>xTags.includes(t));
+      if(overlap.length>0){score+=overlap.length;reasons.push('공통 태그');}
+    }
+    if(score>0)scored.push({id:x.id,caseNum:x.caseNum,name:x.name,status:x.status,score,reasons});
+  });
+  scored.sort((a,b)=>b.score-a.score);
+  return scored.slice(0,5);
+}
+
 function renderDpRelated(c){
   const card=document.getElementById('dp-related-card');if(!card)return;
   const related=c.relatedCases||[];
@@ -4904,10 +5970,20 @@ function renderDpRelated(c){
       <span class="related-num">${esc(rc.caseNum)}</span>
       <span class="related-name">${esc(rc.name)}</span>
       <span class="tag tag-${rc.status}" style="font-size:10px">${STS[rc.status]}</span>
-      <button class="related-del" onclick="event.stopPropagation();removeRelated(${i})">×</button>
+      <button class="related-del" onclick="event.stopPropagation();removeRelated(${i})">\u00d7</button>
     </div>`;
   }).join('')
   :'<div style="font-size:12px;color:var(--text-muted);padding:4px 0">연관 사건 없음</div>';
+
+  const suggestions=getAutoRelatedCases(c);
+  const suggestHtml=suggestions.length?suggestions.map(s=>`
+    <div class="auto-related-item">
+      <span style="font-family:'Courier New',monospace;font-size:11px;color:var(--text-muted);min-width:88px">${esc(s.caseNum)}</span>
+      <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(s.name)}</span>
+      ${s.reasons.map(r=>`<span class="auto-related-reason">${esc(r)}</span>`).join('')}
+      <button class="auto-related-link-btn" onclick="event.stopPropagation();addRelatedByNum('${esc(s.caseNum)}')">연결</button>
+    </div>`).join('')
+  :'<div style="font-size:11px;color:var(--text-muted)">추천할 연관 사건이 없습니다</div>';
 
   card.innerHTML=`
     <div class="dp-card-header" style="border-left:3px solid var(--navy-accent)">
@@ -4915,6 +5991,10 @@ function renderDpRelated(c){
       <button class="dp-card-edit-btn" onclick="toggleSection('related')" id="edit-btn-related">+ 연결</button>
     </div>
     <div class="dp-card-body">${relatedHtml}</div>
+    <div class="auto-related-section">
+      <div class="auto-related-title">자동 추천</div>
+      ${suggestHtml}
+    </div>
     <div id="edit-section-related" style="display:none">
       <div class="dp-edit-form">
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">사건번호로 연결</div>
@@ -4926,6 +6006,11 @@ function renderDpRelated(c){
         </div>
       </div>
     </div>`;
+}
+
+function addRelatedByNum(caseNum){
+  document.getElementById('relatedNumIn').value=caseNum;
+  addRelated();
 }
 
 function addRelated(){
@@ -5180,31 +6265,197 @@ async function sendWebhookAlert(payload){
   }
 }
 
-// renderDday 에서 D-3 이하 기일 자동 알림 (하루 1회 제한)
+/* Feature 12: 기일 알림 다층화 */
+const DEADLINE_ALERT_LEVELS = [
+  {dday:14, level:'info',    label:'사전 안내',  targets:['manager']},
+  {dday:7,  level:'warning', label:'주의',      targets:['manager','lawyer']},
+  {dday:3,  level:'urgent',  label:'긴급',      targets:['manager','lawyer']},
+  {dday:1,  level:'critical',label:'최종 알림',  targets:['manager','lawyer','executive']},
+  {dday:0,  level:'today',   label:'D-DAY',     targets:['manager','lawyer','executive']},
+];
+
+function getDeadlineAlertLevel(d){
+  if(d<0)return null;
+  for(let i=DEADLINE_ALERT_LEVELS.length-1;i>=0;i--){
+    if(d<=DEADLINE_ALERT_LEVELS[i].dday)return DEADLINE_ALERT_LEVELS[i];
+  }
+  return null;
+}
+
+// renderDday 에서 기일 자동 알림 — 다층화 (하루 1회, 레벨별 중복 방지)
 function checkDdayAlerts(){
-  const url=localStorage.getItem(LS_WEBHOOK);
-  if(!url)return;
   const today_str=today();
   cases.filter(c=>c.status!=='done'&&canAccess(c)).forEach(c=>{
     (c.deadlines||[]).forEach(dl=>{
       const d=dday(dl.date);
-      if(d>=0&&d<=3){
-        const alertKey=`legalLastAlert_${c.id}_${dl.date}`;
-        if(localStorage.getItem(alertKey)===today_str)return; // 오늘 이미 알림 발송
-        localStorage.setItem(alertKey,today_str);
+      const alertInfo=getDeadlineAlertLevel(d);
+      if(!alertInfo)return;
+
+      const alertKey=`legalAlert_${c.id}_${dl.date}_${alertInfo.level}`;
+      if(localStorage.getItem(alertKey)===today_str)return;
+      localStorage.setItem(alertKey,today_str);
+
+      const levelLabel=alertInfo.label;
+      const msg=`[${levelLabel}] ${c.caseNum} "${dl.name}" ${fmtDday(d)}`;
+
+      // 인앱 알림
+      addNotif('deadline',msg,c.id,alertInfo.level);
+
+      // Webhook
+      const url=localStorage.getItem(LS_WEBHOOK);
+      if(url){
         sendWebhookAlert({
           type:'deadline_alert',
+          level:alertInfo.level,
           caseNum:c.caseNum,
           caseName:c.name,
           deadlineName:dl.name,
           date:dl.date,
           dday:d,
           lawyer:c.lawyer||'',
-          message:`[법무대시보드] ${c.caseNum} "${dl.name}" ${fmtDday(d)}`
+          targets:alertInfo.targets,
+          message:msg
         });
       }
     });
   });
+}
+
+
+/* ===========================
+   Feature 11: 경영진용 자동 보고서
+   =========================== */
+function generateExecReport(){
+  const now=new Date();
+  const year=parseInt(document.getElementById('repYear')?.value||now.getFullYear());
+  const month=parseInt(document.getElementById('repMonth')?.value||(now.getMonth()+1));
+  const org=document.getElementById('repOrg')?.value||'법무팀';
+  const monthStr=String(month).padStart(2,'0');
+  const monthStart=year+'-'+monthStr+'-01';
+  const monthEnd=month===12?(year+1)+'-01-01':year+'-'+String(month+1).padStart(2,'0')+'-01';
+
+  const mc=cases.filter(x=>x.date>=monthStart&&x.date<monthEnd);
+  const closed=cases.filter(x=>x.status==='done'&&x.closeDate&&x.closeDate>=monthStart&&x.closeDate<monthEnd);
+  const active=cases.filter(x=>x.status!=='done'&&x.status!=='hold');
+  const newCases=mc.filter(x=>x.status!=='done');
+
+  // 비용
+  let totalCost=0;
+  const costByCase=[];
+  cases.forEach(x=>{
+    const cc=(x.costs||[]).filter(ct=>{
+      const cd=ct.date||'';
+      return cd>=monthStart&&cd<monthEnd;
+    });
+    const sum=cc.reduce((s,ct)=>s+(parseInt(ct.amount)||0),0);
+    if(sum>0)costByCase.push({caseNum:x.caseNum,name:x.name,cost:sum});
+    totalCost+=sum;
+  });
+  costByCase.sort((a,b)=>b.cost-a.cost);
+
+  // 위험 사건 (14일 이내 기일)
+  const urgentCases=[];
+  active.forEach(x=>{
+    (x.deadlines||[]).forEach(dl=>{
+      const d=dday(dl.date);
+      if(d>=0&&d<=14){
+        urgentCases.push({caseNum:x.caseNum,name:x.name,dlName:dl.name,dlDate:dl.date,dday:d,lawyer:x.lawyer||''});
+      }
+    });
+  });
+  urgentCases.sort((a,b)=>a.dday-b.dday);
+
+  // 분류별 현황
+  const catStats={};
+  Object.keys(CAT).forEach(k=>{catStats[k]={total:0,done:0};});
+  cases.filter(x=>x.date>=monthStart&&x.date<monthEnd).forEach(x=>{
+    if(catStats[x.category]){catStats[x.category].total++;if(x.status==='done')catStats[x.category].done++;}
+  });
+
+  // 담당자별 현황
+  const lawyerMap={};
+  cases.forEach(x=>{
+    const lw=x.lawyer||'미배정';
+    if(!lawyerMap[lw])lawyerMap[lw]={active:0,doneMonth:0};
+    if(x.status!=='done'&&x.status!=='hold')lawyerMap[lw].active++;
+    if(x.status==='done'&&x.closeDate&&x.closeDate>=monthStart&&x.closeDate<monthEnd)lawyerMap[lw].doneMonth++;
+  });
+
+  const todayStr=today();
+
+  const html=`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>경영진 보고서 - ${year}년 ${month}월</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;color:#1e293b;background:#fff;padding:40px;max-width:900px;margin:0 auto;font-size:13px;line-height:1.6;}
+h1{font-family:Georgia,serif;font-size:22px;color:#1a2f4a;text-align:center;margin-bottom:4px;}
+.subtitle{text-align:center;color:#64748b;font-size:13px;margin-bottom:30px;}
+h2{font-size:15px;color:#1a2f4a;border-bottom:2px solid #b8924a;padding-bottom:6px;margin:28px 0 14px;}
+.summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.s-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;text-align:center;}
+.s-card .label{font-size:11px;color:#64748b;margin-bottom:4px;}
+.s-card .value{font-size:22px;font-weight:700;color:#1a2f4a;}
+.s-card .value.red{color:#dc2626;}
+.s-card .value.green{color:#16a34a;}
+.s-card .value.blue{color:#2563eb;}
+.s-card .value.gold{color:#b8924a;}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12px;}
+th{background:#1a2f4a;color:#fff;padding:8px 10px;text-align:left;font-weight:500;}
+td{padding:7px 10px;border-bottom:1px solid #e2e8f0;}
+tr:nth-child(even){background:#f8fafc;}
+.dday-badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;}
+.dday-critical{background:#fef2f2;color:#dc2626;}
+.dday-warning{background:#fffbeb;color:#d97706;}
+.dday-info{background:#eff6ff;color:#2563eb;}
+.footer{margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;color:#94a3b8;font-size:11px;}
+@media print{body{padding:20px;} .no-print{display:none;}}
+</style></head><body>
+<h1>${esc(org)} 월간 경영 보고</h1>
+<div class="subtitle">${year}년 ${month}월 | ${esc(org)}</div>
+
+<h2>1. 핵심 요약</h2>
+<div class="summary-cards">
+  <div class="s-card"><div class="label">신규 접수</div><div class="value blue">${mc.length}건</div></div>
+  <div class="s-card"><div class="label">완료</div><div class="value green">${closed.length}건</div></div>
+  <div class="s-card"><div class="label">진행 중</div><div class="value">${active.length}건</div></div>
+  <div class="s-card"><div class="label">총 비용</div><div class="value gold">${fmtMoney(totalCost)}</div></div>
+</div>
+
+<h2>2. 주요 위험 사건</h2>
+${urgentCases.length?`<table><thead><tr><th>사건번호</th><th>사건명</th><th>기일명</th><th>기일</th><th>D-Day</th><th>담당</th></tr></thead><tbody>
+${urgentCases.map(u=>`<tr><td>${esc(u.caseNum)}</td><td>${esc(u.name)}</td><td>${esc(u.dlName)}</td><td>${u.dlDate}</td><td><span class="dday-badge ${u.dday<=1?'dday-critical':u.dday<=7?'dday-warning':'dday-info'}">${fmtDday(u.dday)}</span></td><td>${esc(u.lawyer)}</td></tr>`).join('')}
+</tbody></table>`:'<p style="color:#64748b;font-size:12px">14일 이내 기일이 있는 사건이 없습니다.</p>'}
+
+<h2>3. 비용 현황</h2>
+<p style="margin-bottom:8px">이번 달 총 비용: <strong>${fmtMoney(totalCost)}</strong></p>
+${costByCase.length?`<table><thead><tr><th>사건번호</th><th>사건명</th><th>비용</th></tr></thead><tbody>
+${costByCase.slice(0,3).map(cc=>`<tr><td>${esc(cc.caseNum)}</td><td>${esc(cc.name)}</td><td style="text-align:right">${fmtMoney(cc.cost)}</td></tr>`).join('')}
+</tbody></table>`:'<p style="color:#64748b;font-size:12px">이번 달 비용 기록이 없습니다.</p>'}
+
+<h2>4. 분류별 현황</h2>
+<table><thead><tr><th>분류</th><th>건수</th><th>완료</th><th>완료율</th></tr></thead><tbody>
+${Object.entries(catStats).map(([k,v])=>`<tr><td>${CAT[k]||k}</td><td>${v.total}</td><td>${v.done}</td><td>${v.total?Math.round(v.done/v.total*100):0}%</td></tr>`).join('')}
+</tbody></table>
+
+<h2>5. 담당자별 현황</h2>
+<table><thead><tr><th>담당자</th><th>진행 중</th><th>이번 달 완료</th></tr></thead><tbody>
+${Object.entries(lawyerMap).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v.active}</td><td>${v.doneMonth}</td></tr>`).join('')}
+</tbody></table>
+
+<h2>6. 주요 완료 사건</h2>
+${closed.length?`<table><thead><tr><th>사건번호</th><th>사건명</th><th>종결일</th><th>종결 사유</th></tr></thead><tbody>
+${closed.map(x=>`<tr><td>${esc(x.caseNum)}</td><td>${esc(x.name)}</td><td>${x.closeDate||''}</td><td>${esc(x.closeReason||'-')}</td></tr>`).join('')}
+</tbody></table>`:'<p style="color:#64748b;font-size:12px">이번 달 완료된 사건이 없습니다.</p>'}
+
+<div class="footer">
+  <span>생성일: ${todayStr}</span>
+  <span>${esc(org)} 사건 관리 시스템</span>
+</div>
+<script>window.onload=function(){window.print();}<\/script>
+</body></html>`;
+
+  const w=window.open('','_blank');
+  if(w){w.document.write(html);w.document.close();}
+  else{alert('팝업이 차단되었습니다. 팝업을 허용해주세요.');}
 }
 </script>
 </body>
